@@ -1,5 +1,3 @@
-from . import crawl
-from .models import Company
 from datetime import *
 from pandas import *
 
@@ -24,3 +22,17 @@ def human_readable_float(f):
         s = '-' + s
     return s
 
+class MyDate:
+    def __init__(self,s):
+        self.s = s
+        self.date = datetime.strptime(s, '%Y-%m-%d').date()
+    def __str__(self):
+        return self.s
+    def __repr__(self):
+        return self.__str__()
+    def __add__(self, n):
+        return MyDate((self.date + timedelta(days=n)).__str__())
+    def __radd__(self, n):
+        return self + n
+    def __sub__(self, n):
+        return self + (-n)
