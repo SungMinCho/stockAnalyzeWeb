@@ -1,0 +1,46 @@
+{% extends 'main/base.html' %}
+{% block board_active %}active{% endblock %}
+{% block body %}
+
+<canvas id="chart"></canvas>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script>
+
+<script>
+
+$.ajax({ url:"{% url 'main:get_prices' code 'all' %}",
+       dataType:'json',
+       success:function(data){
+	labels = []
+	dataset = []
+	for(var key in data) {
+		if(data.hasOwnProperty(key)) {
+			labels.push(key)
+			dataset.push(data[key])
+		}
+	}
+
+	var ctx = document.getElementById('chart').getContext('2d');
+	var chart = new Chart(ctx, {
+		    // The type of chart we want to create
+		    type: 'line',
+
+		    // The data for our dataset
+	  	    data: {
+				labels: labels,
+				datasets: [{
+					    label: "Adj Close",
+					    backgroundColor: 'rgb(173,255,47)',
+					    borderColor: 'rgb(173,255,47)',
+					    data: dataset,
+				}]
+		    },
+
+		     // Configuration options go here
+		     options: {}
+	});
+       }
+})
+
+</script>
+
+{% endblock %}

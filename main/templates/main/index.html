@@ -1,1 +1,24 @@
-TEST
+{% extends 'main/base.html' %}
+{% block board_active %}active{% endblock %}
+{% block body %}
+
+
+  <table class="table table-striped">
+	  <th>Code</th>
+	  <th>Name</th>
+	  <th>{{ TodayShort }}</th>
+  {% for c in Companies %}
+    <tr>
+	    <td><a href="{% url 'main:detail' c.code %}">{{ c.code }}</a></td>
+	    <td><a href="{% url 'main:detail' c.code %}">{{ c.name }}</a></td>
+	    <td id="{{ c.code }}"></td>
+    </tr>
+  {% endfor %}
+  </table>
+
+<script>
+
+
+</script>
+
+{% endblock %}

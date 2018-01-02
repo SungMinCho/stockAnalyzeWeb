@@ -5,7 +5,6 @@ from pandas_datareader.google.daily import GoogleDailyReader
 #import fix_yahoo_finance as yf
 from tabulate import tabulate
 from datetime import *
-from yahoo_finance import Share
 import urllib.request
 from bs4 import BeautifulSoup
 import re
