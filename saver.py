@@ -13,4 +13,27 @@ def saver(ks):
         c.save()
 
 
-#saver(read_pickle('main/data/kospi_codes'))
+def pricestablesaver():
+    counter = 0
+    for c in Company.objects.all():
+        counter += 1
+        print('\r       ', end='')
+        print(counter, end='')
+        try:
+            p = read_pickle('/var/www/stockAnalyzeWeb/main/data/' + c.code + '.KS_prices')
+            for index, row in p.iterrows():
+                pt = Price(company=c,
+                        date=str(index).split(' ')[0],
+                        open = row['Open'],
+                        close = row['Close'],
+                        high = row['High'],
+                        low = row['Low'],
+                        adjclose = row['Adj Close'],
+                        volume = row['Volume'])
+                pt.save()
+        except Exception as e:
+            print(e, end='')
+
+def main():
+    pricestablesaver()
+

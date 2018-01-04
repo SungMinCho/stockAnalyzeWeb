@@ -18,3 +18,13 @@ class Company(models.Model):
 
     def __str__(self):
         return self.name + self.code
+
+class Price(models.Model):
+    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    date = models.CharField(max_length=20)
+    open = models.FloatField(default=0.0)
+    close = models.FloatField(default=0.0)
+    high = models.FloatField(default=0.0)
+    low = models.FloatField(default=0.0)
+    adjclose = models.FloatField(default=0.0)
+    volume = models.FloatField(default=0.0)
