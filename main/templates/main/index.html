@@ -9,14 +9,59 @@
 	  <th>{{ TodayShort }}</th>
   {% for c in Companies %}
     <tr>
-	    <td><a href="{% url 'main:detail' c.code %}">{{ c.code }}</a></td>
-	    <td><a href="{% url 'main:detail' c.code %}">{{ c.name }}</a></td>
-	    <td id="{{ c.code }}"></td>
+	    <td class="shrink"><a href="{% url 'main:detail' c.code %}">{{ c.code }}</a></td>
+	    <td class="shrink"><a href="{% url 'main:detail' c.code %}">{{ c.name }}</a></td>
+	    <td class="shrink" id="{{ c.code }}"></td>
+<!--
+	<script>
+	  $(document).ready(function(){
+		  $.ajax({
+			  url: "{% url 'main:price_change' c.code Today %}",
+			  dataType: "json",
+			  success: function(data) {
+				  $('#{{ c.code }}').html(data.value);
+				  if(data.value.startsWith('+')) {
+					  $('#{{ c.code }}').css('color', 'red');
+				  } else if(data.value.startsWith('-')) {
+					  $('#{{ c.code }}').css('color', 'blue');
+				  }
+			  },
+			  error: function(error){
+				  console.log(eval(error))
+			  },
+		  });
+	  })
+	</script>
+-->
+
     </tr>
   {% endfor %}
   </table>
 
 <script>
+	  $(document).ready(function(){
+		  $.ajax({
+			  url: "{% url 'main:price_change' 'all' Today %}",
+			  dataType: "json",
+			  success: function(data) {
+				  for(var k in data) {
+					  if(data.hasOwnProperty(k)) {
+						  v = data[k];
+						  k = '#' + k;
+						  $(k).html(v);
+						  if(v.startsWith('+')) {
+							  $(k).css('color', 'red');
+						  } else if(v.startsWith('-')) {
+							  $(k).css('color', 'blue');
+						  }
+					  }
+				  }
+			  },
+			  error: function(error){
+				  console.log(eval(error))
+			  },
+		  });
+	  })
 
 
 </script>

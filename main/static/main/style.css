@@ -26,3 +26,21 @@ ul.errorlist > li {
 .glyphicon-star.active {
     color: #FDB230;
 }
+
+table {
+	    border: 1px solid green;
+            border-collapse: collapse;
+	    width:100%;
+}
+
+table td {
+       border: 1px solid green;
+}
+
+table td.shrink {
+    width:1px;
+    white-space:nowrap
+}
+table td.expand {
+        width: 99%
+}

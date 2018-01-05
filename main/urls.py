@@ -10,5 +10,6 @@ urlpatterns = [
         path('logout-user', views.logout_user, name='logout_user'),
         path('data/prices/<code>/<date>', views.get_prices, name='get_prices'),
         path('detail/<code>', views.detail, name='detail'),
+        path('data/price-change/<code>/<date>', views.price_change, name='price_change')
         #url(r'^$', views.index, name='index'),
 ]
