@@ -68,7 +68,7 @@ def price_change(code, date):
             pass
     if oldprice == None:
         return 'X'
-    diff = (newprice - oldprice) / oldprice
+    diff = (newprice - oldprice) / oldprice * 100
     ret = '+{:.2f}%'.format(diff)
     if diff < 0:
         ret = ret[1:]
