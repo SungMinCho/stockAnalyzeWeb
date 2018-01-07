@@ -19,27 +19,6 @@
 	    <td><a href="{% url 'main:detail' c.code %}">{{ c.code }}</a></td>
 	    <td><a href="{% url 'main:detail' c.code %}">{{ c.name }}</a></td>
 	    <td id="{{ c.code }}"></td>
-<!--
-	<script>
-	  $(document).ready(function(){
-		  $.ajax({
-			  url: "{% url 'main:price_change' c.code Today %}",
-			  dataType: "json",
-			  success: function(data) {
-				  $('#{{ c.code }}').html(data.value);
-				  if(data.value.startsWith('+')) {
-					  $('#{{ c.code }}').css('color', 'red');
-				  } else if(data.value.startsWith('-')) {
-					  $('#{{ c.code }}').css('color', 'blue');
-				  }
-			  },
-			  error: function(error){
-				  console.log(eval(error))
-			  },
-		  });
-	  })
-	</script>
--->
 
     </tr>
   {% endfor %}
@@ -55,6 +34,7 @@ $(document).ready(function(){
 		  for(var k in data) {
 			  if(data.hasOwnProperty(k)) {
 				  v = data[k];
+				  if(k.startsWith('^')) { k = "\\" + k; }
 				  k = '#' + k;
 				  $(k).html(v);
 				  if(v.startsWith('+')) {
