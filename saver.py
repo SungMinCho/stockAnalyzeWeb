@@ -1,6 +1,7 @@
 from stockAnalyzeWeb.wsgi import *
 from pandas import *
 from main.models import * 
+from main.sejong import *
 
 def saver(ks):
     for index, r in ks.iterrows():
@@ -33,6 +34,34 @@ def pricestablesaver():
                 pt.save()
         except Exception as e:
             print(e, end='')
+
+def fund_y_saver():
+    counter = 0
+    for c in Company.objects.all():
+        counter += 1
+        if c.code == '^KS11':
+            continue
+        print('\r         ', end='')
+        print(counter, end='')
+        try:
+            p = get_fin_table(c.code)
+            for index, row in p.iterrows():
+                if index == 0:
+                    continue
+                d = row[0].split(' ')[0].replace('.', '-') + '-01'
+                fundy = Fund_y(company=c,
+                        date=d,
+                        sales=r[1],
+                        biz_profit=r[2],
+                        net_profit=r[3],
+                        consol_net_profit=r[4],
+                        tot_asset=r[5],
+                        tot_debt=r[6],
+                        tot_capital=r[7])
+                fundy.save()
+        except Exception as e:
+            print(e, end='')
+
 
 def main():
     pricestablesaver()

@@ -28,3 +28,15 @@ class Price(models.Model):
     low = models.FloatField(default=0.0)
     adjclose = models.FloatField(default=0.0)
     volume = models.FloatField(default=0.0)
+
+class Fund_y(models.Model):
+    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    date = models.CharField(max_length=20)
+    sales = models.FloatField(default=0.0)
+    biz_profit = models.FloatField(default=0.0)
+    net_profit = models.FloatField(default=0.0)
+    consol_net_profit = models.FloatField(default=0.0)
+    tot_asset = models.FloatField(default=0.0)
+    tot_debt = models.FloatField(default=0.0)
+    tot_capital = models.FloatField(default=0.0)
+
