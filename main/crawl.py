@@ -102,6 +102,8 @@ def get_stock(code, start=date.fromordinal(date.today().toordinal()-365*5), end=
     return pdr.DataReader(code, "yahoo", start, end)
 
 def get_kospi(code, start=date.fromordinal(date.today().toordinal()-365*5), end=date.today()):
+    if code == "^KS11":
+        return get_stock(code, start, end)
     return get_stock(code+".KS", start, end)
 
 #Fix this. can't get kosdaq from both google and yahoo.

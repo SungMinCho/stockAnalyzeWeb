@@ -4,6 +4,8 @@
 
 <canvas id="chart"></canvas>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script>
+{% load static %}
+<script src="{% static 'main/chartjs-plugin-zoom.js' %}"></script>
 
 <script>
 
@@ -35,6 +37,53 @@ $.ajax({ url:"{% url 'main:get_prices' code 'all' %}",
 	var ma60 = ma(60);
 	var ma120 = ma(120);
 
+	var options = 
+				{
+					// Container for pan options
+					pan: {
+						// Boolean to enable panning
+						enabled: true,
+
+						// Panning directions. Remove the appropriate direction to disable 
+						// Eg. 'y' would only allow panning in the y direction
+						mode: 'xy',
+						rangeMin: {
+							// Format of min pan range depends on scale type
+							x: null,
+							y: null
+						},
+						rangeMax: {
+							// Format of max pan range depends on scale type
+							x: null,
+							y: null
+						}
+					},
+					
+					// Container for zoom options
+					zoom: {
+						// Boolean to enable zooming
+						enabled: true,
+
+						// Enable drag-to-zoom behavior
+						drag: true,
+
+						// Zooming directions. Remove the appropriate direction to disable 
+						// Eg. 'y' would only allow zooming in the y direction
+						mode: 'xy',
+						rangeMin: {
+							// Format of min zoom range depends on scale type
+							x: null,
+							y: null
+						},
+						rangeMax: {
+							// Format of max zoom range depends on scale type
+							x: null,
+							y: null
+						}
+					}
+				};
+
+
 
 	var ctx = document.getElementById('chart').getContext('2d');
 	var chart = new Chart(ctx, {
@@ -48,28 +97,32 @@ $.ajax({ url:"{% url 'main:get_prices' code 'all' %}",
 					    label: "Adj Close",
 					    backgroundColor: 'rgba(50,50,50,0.5)',
 					    borderColor: 'rgb(70,70,70)',
-					    pointRadius: 1,
+					    pointRadius: 0,
+					    borderWidth: 1.5,
 					    data: dataset,
 				},
 				{
 					label: "MA20",
 					backgroundColor: 'rgba(255,0,0,0)',
 					borderColor: 'rgb(255,0,0)',
-					pointRadius: 1,
+					pointRadius: 0,
+					borderWidth: 1.5,
 					data: ma20,
 				},
 				{
 					label: "MA60",
 					backgroundColor: 'rgba(0,255,0,0)',
 					borderColor: 'rgb(0,255,0)',
-					pointRadius: 1,
+					pointRadius: 0,
+					borderWidth: 1.5,
 					data: ma60,
 				},				
 				{
 					label: "MA120",
 					backgroundColor: 'rgba(0,0,255,0)',
 					borderColor: 'rgb(0,0,255)',
-					pointRadius: 1,
+					pointRadius: 0,
+					borderWidth: 1.5,
 					data: ma120,
 				},
 
@@ -78,7 +131,7 @@ $.ajax({ url:"{% url 'main:get_prices' code 'all' %}",
 		    },
 
 		     // Configuration options go here
-		     options: {}
+		     options: options,
 	});
        }
 })

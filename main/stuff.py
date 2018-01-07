@@ -1,6 +1,8 @@
 from datetime import *
 from pandas import *
 from .models import *
+from .crawl import *
+from pandas_datareader import data as pdr
 
 def human_readable_float(f):
     save_f = f
@@ -37,15 +39,29 @@ class MyDate:
         return self + n
     def __sub__(self, n):
         return self + (-n)
+    def __eq__(self, other):
+        return self.s == other.s
+    def __ne__(self, other):
+        return not (self == other)
+    def __lt__(self, other):
+        return self.date < other.date
+    def __le__(self, other):
+        return (self == other) or self < other
+    def __gt__(self, other):
+        return other < self
+    def __ge__(self, other):
+        return other <= self
+    def __hash__(self):
+        return hash(self.s)
 
     def today():
         return MyDate(datetime.today().__str__().split(' ')[0])
-    def fromfile(f):
+    def fromfile(f='/var/www/stockAnalyzeWeb/main/data/today.txt'):
         f = open(f, 'r')
         s = f.readline().strip()
         f.close()
         return MyDate(s)
-    def tofile(self, f):
+    def tofile(self, f='/var/www/stockAnalyzeWeb/main/data/today.txt'):
         f = open(f, 'w')
         f.write(self.__str__())
         f.close()
@@ -53,16 +69,21 @@ class MyDate:
 def price_change(code, date):
     c = Company.objects.get(code=code)
     p = c.price_set
-    try:
-        newprice = p.get(date=date).adjclose
-    except Exception as e:
+    newprice = None
+    for n in range(15):
+        try:
+            newprice = p.get(date=date-n).adjclose
+            break
+        except Exception as e:
+            pass
+    if newprice == None:
         return 'X'
 
     oldprice = None
-    for n in range(1, 15):
-        date = date-1
+    for m in range(n+1, 20):
+        olddate = date-m
         try:
-            oldprice = p.get(date=date).adjclose
+            oldprice = p.get(date=olddate).adjclose
             break
         except Exception as e:
             pass
@@ -73,4 +94,47 @@ def price_change(code, date):
     if diff < 0:
         ret = ret[1:]
     return ret
+
+def update_prices(todate=MyDate.today()):
+    i = 0
+    origin = MyDate('2012-12-03')
+    for c in Company.objects.all():
+        i += 1
+        print('\r                                                                   ', end='')
+        print('\r' + ' '*100, end='')
+        print('\r'+str(i), end='')
+        try:
+            try:
+                fromdate = MyDate(c.price_set.latest('date').date)
+                fromdate = fromdate + 1
+                if MyDate(c.price_set.earliest('date').date) > origin:
+                    fromdate = origin
+            except Exception as e:
+                fromdate = origin
+            if fromdate >= todate:
+                continue
+            print('date ', fromdate, todate)
+            for getn in range(5):
+                try:
+                    p = get_kospi(c.code, fromdate.date, todate.date)
+                    break
+                except Exception as e:
+                    pass
+            for index, row in p.iterrows():
+                try:
+                    pt = Price(company=c,
+                            date=str(index).split(' ')[0],
+                            open = row['Open'],
+                            close = row['Close'],
+                            high = row['High'],
+                            low = row['Low'],
+                            adjclose = row['Adj Close'],
+                            volume = row['Volume'])
+                    pt.save()
+                except Exception as e:
+                    pass
+        except Exception as e:
+            print('\r'+str(e), end='')
+    todate.tofile()
+
 
