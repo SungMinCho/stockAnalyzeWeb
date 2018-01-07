@@ -137,4 +137,10 @@ def update_prices(todate=MyDate.today()):
             print('\r'+str(e), end='')
     todate.tofile()
 
-
+def fund_info(code, date, freq, item):
+    if freq == 'a':
+        table = Company.objects.get(code=code).fund_y_set
+    else:
+        table = Company.objects.get(code=code).fund_q_set
+    row = table.filter(date__lt=date_).latest('date')
+    return getattr(row, item) 

@@ -51,3 +51,12 @@ def price_change(request, code, date):
     return JsonResponse(ret)
 
 
+def fund_info(request, code, date, freq, item):
+    if code == 'all':
+        codes = [c.code for c in Company.objects.all()]
+    else:
+        codes = [code]
+    ret = {}
+    for c in codes:
+        ret[c] = stuff.fund_info(c, date, freq, item)
+    return JsonResponse(ret)

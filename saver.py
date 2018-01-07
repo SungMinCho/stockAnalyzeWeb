@@ -41,14 +41,14 @@ def fund_y_saver():
         counter += 1
         if c.code == '^KS11':
             continue
-        print('\r         ', end='')
-        print(counter, end='')
+        print('\r                                             ', end='')
+        print('\r'+str(counter), end='')
         try:
             p = get_fin_table(c.code)
-            for index, row in p.iterrows():
+            for index, r in p.iterrows():
                 if index == 0:
                     continue
-                d = row[0].split(' ')[0].replace('.', '-') + '-01'
+                d = r[0].split(' ')[0].replace('.', '-') + '-01'
                 fundy = Fund_y(company=c,
                         date=d,
                         sales=r[1],
@@ -62,6 +62,30 @@ def fund_y_saver():
         except Exception as e:
             print(e, end='')
 
+def fund_q_saver():
+    counter = 0
+    for c in Company.objects.all():
+        counter += 1
+        if c.code == '^KS11':
+            continue
+        print('\r                                             ', end='')
+        print('\r'+str(counter), end='')
+        try:
+            p = get_fin_table(c.code, 'q')
+            p = p[0].T
+            for index, r in p.iterrows():
+                if index == 0:
+                    continue
+                d = r[0].split(' ')[0].replace('.', '-') + '-01'
+                fundq = Fund_q(company=c,
+                        date=d,
+                        sales=r[1],
+                        biz_profit=r[2],
+                        net_profit=r[3],
+                        consol_net_profit=r[4])
+                fundq.save()
+        except Exception as e:
+            print(e, end='')
 
 def main():
     pricestablesaver()
