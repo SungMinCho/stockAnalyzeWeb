@@ -10,6 +10,13 @@
 	  <th>Code</th>
 	  <th>Name</th>
 	  <th>{{ TodayShort }}</th>
+	  <th>매출액</th>
+	  <th>영업이익</th>
+	  <th>순이익</th>
+	  <th>연결순이익</th>
+	  <th>자산총계</th>
+	  <th>부채총계</th>
+	  <th>자본총계</th>
 	  </tr>
 	  </thead>
 
@@ -19,7 +26,13 @@
 	    <td><a href="{% url 'main:detail' c.code %}">{{ c.code }}</a></td>
 	    <td><a href="{% url 'main:detail' c.code %}">{{ c.name }}</a></td>
 	    <td id="{{ c.code }}"></td>
-
+	    <td id="{{ c.code }}sales"></td>
+	    <td id="{{ c.code }}biz_profit"></td>
+	    <td id="{{ c.code }}net_profit"></td>
+	    <td id="{{ c.code }}consol_net_profit"></td>
+	    <td id="{{ c.code }}tot_asset"></td>
+	    <td id="{{ c.code }}tot_debt"></td>
+	    <td id="{{ c.code }}tot_capital"></td>
     </tr>
   {% endfor %}
 	  </tbody>
@@ -49,6 +62,25 @@ $(document).ready(function(){
 		  console.log(eval(error))
 	  },
   });
+  {% for item in y_items %}
+  $.ajax({
+	  url: "{% url 'main:fund_info' 'all' Today 'a' item %}",
+	  dataType: "json",
+	  success: function(data) {
+		  for(var k in data) {
+			  if(data.hasOwnProperty(k)) {
+				  v = data[k];
+				  if(k.startsWith('^')) { continue; }
+				  k = '#' + k + {{ item }};
+				  $(k).html(v);
+			  }
+		  }
+	  },
+	  error: function(error){
+		  console.log(eval(error))
+	  },
+  });
+  {% endfor %}
 })
 
 $(document).ready(function(){

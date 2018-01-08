@@ -14,6 +14,7 @@ def index(request):
     today = stuff.MyDate.fromfile('/var/www/stockAnalyzeWeb/main/data/today.txt')
     ctx['Today'] = today.__str__() 
     ctx['TodayShort'] = today.__str__()[2:]
+    ctx['y_items'] = ['sales', 'biz_profit', 'net_profit', 'consol_net_profit', 'tot_asset', 'tot_debt', 'tot_capital']
 
     return render(request, 'main/index.html', ctx)
 

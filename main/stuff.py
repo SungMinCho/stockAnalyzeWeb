@@ -142,5 +142,9 @@ def fund_info(code, date, freq, item):
         table = Company.objects.get(code=code).fund_y_set
     else:
         table = Company.objects.get(code=code).fund_q_set
-    row = table.filter(date__lt=date_).latest('date')
-    return getattr(row, item) 
+    try:
+        row = table.filter(date__lt=date_).latest('date')
+        ret = getattr(row, item)
+        return ret
+    except Exception as e:
+        return None
