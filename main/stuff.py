@@ -137,7 +137,7 @@ def update_prices(todate=MyDate.today()):
             print('\r'+str(e), end='')
     todate.tofile()
 
-def fund_info(code, date, freq, item):
+def fund_info(code, date_, freq, item):
     if freq == 'a':
         table = Company.objects.get(code=code).fund_y_set
     else:
@@ -147,4 +147,4 @@ def fund_info(code, date, freq, item):
         ret = getattr(row, item)
         return ret
     except Exception as e:
-        return None
+        return 'X'

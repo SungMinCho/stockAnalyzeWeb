@@ -71,20 +71,59 @@ $(document).ready(function(){
 			  if(data.hasOwnProperty(k)) {
 				  v = data[k];
 				  if(k.startsWith('^')) { continue; }
-				  k = '#' + k + {{ item }};
+				  k = '#' + k + "{{ item }}";
 				  $(k).html(v);
 			  }
 		  }
+		  $("#board").trigger("update");
 	  },
 	  error: function(error){
 		  console.log(eval(error))
 	  },
   });
   {% endfor %}
-})
+});
+
+$.tablesorter.addParser({
+	id: 'float',
+	is: function(s, table, cell, $cell) {
+		return false;
+	},
+	format: function(s, table, cell, $cell) {
+		if(s === 'X') return -99999999;
+		return parseFloat(s);
+	},
+	type: 'numeric'
+});
+
+$.tablesorter.addParser({
+	id: 'percent',
+	is: function(s, table, cell, $cell) {
+		return false;
+	},
+	format: function(s, table, cell, $cell) {
+		if(s === 'X') return -99999999;
+		return parseFloat(s.replace('%',''));
+	},
+	type: 'numeric'
+});
+
+
 
 $(document).ready(function(){
-	$("#board").tablesorter();
+	$("#board").tablesorter({
+		theme: 'blue',
+		headers: {
+			2: { sorter : 'float' },
+			3: { sorter : 'float' },
+			4: { sorter : 'float' },
+			5: { sorter : 'float' },
+			6: { sorter : 'float' },
+			7: { sorter : 'float' },
+			8: { sorter : 'float' },
+			9: { sorter : 'float' },
+		},
+	});
 });
 
 
