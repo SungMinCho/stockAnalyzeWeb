@@ -23,8 +23,11 @@ def pricestablesaver():
         try:
             p = read_pickle('/var/www/stockAnalyzeWeb/main/data/' + c.code + '.KS_prices')
             for index, row in p.iterrows():
+                d = str(index).split(' ')[0],
+                if Price.objects.filter(company=c).filter(date=d).count() > 0:
+                    continue
                 pt = Price(company=c,
-                        date=str(index).split(' ')[0],
+                        date=d,
                         open = row['Open'],
                         close = row['Close'],
                         high = row['High'],
@@ -48,17 +51,22 @@ def fund_y_saver():
             for index, r in p.iterrows():
                 if index == 0:
                     continue
-                d = r[0].split(' ')[0].replace('.', '-') + '-01'
-                fundy = Fund_y(company=c,
-                        date=d,
-                        sales=r[1],
-                        biz_profit=r[2],
-                        net_profit=r[3],
-                        consol_net_profit=r[4],
-                        tot_asset=r[5],
-                        tot_debt=r[6],
-                        tot_capital=r[7])
-                fundy.save()
+                try:
+                    d = r[0].split(' ')[0].replace('.', '-') + '-01'
+                    if Fund_y.objects.filter(company=c).filter(date=d).count() > 0:
+                        continue
+                    fundy = Fund_y(company=c,
+                            date=d,
+                            sales=r[1],
+                            biz_profit=r[2],
+                            net_profit=r[3],
+                            consol_net_profit=r[4],
+                            tot_asset=r[5],
+                            tot_debt=r[6],
+                            tot_capital=r[7])
+                    fundy.save()
+                except Exception as e:
+                    pass
         except Exception as e:
             print(e, end='')
 
@@ -76,17 +84,23 @@ def fund_q_saver():
             for index, r in p.iterrows():
                 if index == 0:
                     continue
-                d = r[0].split(' ')[0].replace('.', '-') + '-01'
-                fundq = Fund_q(company=c,
-                        date=d,
-                        sales=r[1],
-                        biz_profit=r[2],
-                        net_profit=r[3],
-                        consol_net_profit=r[4])
-                fundq.save()
+                try:
+                    d = r[0].split(' ')[0].replace('.', '-') + '-01'
+                    if Fund_q.objects.filter(company=c).filter(date=d).count() > 0:
+                        continue
+                    fundq = Fund_q(company=c,
+                            date=d,
+                            sales=r[1],
+                            biz_profit=r[2],
+                            net_profit=r[3],
+                            consol_net_profit=r[4])
+                    fundq.save()
+                except Exception as e:
+                    pass
         except Exception as e:
             print(e, end='')
 
 def main():
-    pricestablesaver()
+    fund_y_saver()
+    fund_q_saver()
 
