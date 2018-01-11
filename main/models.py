@@ -52,6 +52,7 @@ class Simulation(models.Model):
     num = models.IntegerField()
     name = models.CharField(max_length=30)
     detail = models.CharField(max_length=140)
+    progress = models.FloatField(default=0.0)
 
 class Chart(models.Model):
     sim = models.ForeignKey(Simulation, on_delete=models.CASCADE)

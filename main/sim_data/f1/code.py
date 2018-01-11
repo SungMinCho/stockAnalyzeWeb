@@ -15,3 +15,6 @@ for x in range(1000):
         y -= 1
     data = FfData(chart=chart, x=x, y=y)
     data.save()
+
+    sim.progress = x / 1000
+    sim.save()
