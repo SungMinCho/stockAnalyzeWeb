@@ -13,5 +13,5 @@ for x in range(1000):
         y += 1
     else:
         y -= 1
-    data = Ffdata(chart=chart, x=x, y=y)
+    data = FfData(chart=chart, x=x, y=y)
     data.save()
