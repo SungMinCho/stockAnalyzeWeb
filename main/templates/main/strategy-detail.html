@@ -1,0 +1,65 @@
+{% extends 'main/base.html' %}
+{% block strategy_active %}active{% endblock %}
+{% block body %}
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script>
+<h3>{{sim.name}}</h3>
+<h4>{{sim.progress}}%</h4>
+<p>{{sim.detail}}</p>
+
+<div id="canvasGroup"></div>
+
+
+<script>
+$.ajax({ url:"{% url 'main:get_charts' sim.num %}",
+       dataType:'json',
+       success:function(data){
+	labels = []
+	dataset = []
+	for(var key in data) {
+		var dict = data[key]
+		var name = dict['name'];
+		var canvas = document.createElement('canvas');
+	        div = document.getElementById('canvasGroup'); 
+	        canvas.id     = "chart"+key;
+	        canvas.width  = 1224;
+	        canvas.height = 768;
+	        canvas.style.zIndex   = 8;
+	        canvas.style.position = "absolute";
+		canvas.style.border   = "1px solid";
+		div.appendChild(canvas)
+
+		var xs = dict['xs']
+		var ys = dict['ys']
+
+		var ctx = canvas.getContext('2d');
+
+		var chart = new Chart(ctx, {
+			    // The type of chart we want to create
+			    type: 'line',
+
+			    // The data for our dataset
+			    data: {
+					labels: xs,
+					datasets: [{
+						    label: name,
+						    backgroundColor: 'rgba(50,50,50,0)',
+						    borderColor: 'rgb(70,70,70)',
+						    pointRadius: 0,
+						    borderWidth: 1.5,
+						    data: ys,
+					},
+					],
+			    },
+
+			     // Configuration options go here
+			    options: {},
+		});
+	}
+       }
+});
+				
+</script>
+
+
+{% endblock %}

@@ -19,7 +19,35 @@ def index(request):
     return render(request, 'main/index.html', ctx)
 
 def strategy(request):
-    return render(request, 'main/index.html', {}) # temp
+    ctx = {}
+    ctx['sims'] = Simulation.objects.all().order_by('-num')
+    return render(request, 'main/strategy.html', ctx)
+
+def strategy_detail(request, num):
+    ctx = {}
+    ctx['sim'] = Simulation.objects.get(num=num)
+    return render(request, 'main/strategy-detail.html', ctx)
+
+def get_charts(request, num):
+    ret = {}
+    sim = Simulation.objects.get(num=num)
+    charts = sim.chart_set.all()
+    i = -1
+    for c in charts:
+        i += 1
+        if c.sfdata_set.all().count() == 0:
+            data = c.ffdata_set.all()
+        else:
+            data = c.sfdata_set.all()
+        ret[i] = {}
+        ret[i]['xs'] = []
+        ret[i]['ys'] = []
+        for d in data:
+            ret[i]['xs'].append(d.x)
+            ret[i]['ys'].append(d.y)
+        ret[i]['name'] = c.name
+    return JsonResponse(ret)
+
 
 def logout_user(request):
     return render(request, 'main/index.html', {}) # temp

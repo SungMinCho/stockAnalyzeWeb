@@ -1,0 +1,20 @@
+{% extends 'main/base.html' %}
+{% block strategy_active %}active{% endblock %}
+{% block body %}
+
+
+<div class="list-group">
+	{% for s in sims %}
+	<a href="{% url 'main:strategy_detail' s.num %}" class="list-group-item">
+		<h5>{{s.name}}</h5>
+		<small>{{s.progress}}%</small>
+		<p>{{s.detail}}</p>
+	</a>
+	{% endfor %}
+</div>
+
+<script>
+
+</script>
+
+{% endblock %}
