@@ -47,3 +47,22 @@ class Fund_q(models.Model):
     biz_profit = models.FloatField(default=0.0)
     net_profit = models.FloatField(default=0.0)
     consol_net_profit = models.FloatField(default=0.0)
+
+class Simulation(models.Model):
+    num = models.IntegerField()
+    name = models.CharField(max_length=30)
+    detail = models.CharField(max_length=140)
+
+class Chart(models.Model):
+    sim = models.ForeignKey(Simulation, on_delete=models.CASCADE)
+    name = models.CharField(max_length=30)
+
+class SfData(models.Model): # String-Float data
+    chart = models.ForeignKey(Chart, on_delete=models.CASCADE)
+    x = models.CharField(max_length=20)
+    y = models.FloatField(default=0.0)
+
+class FfData(models.Model): # Float-FLoat data
+    chart = models.ForeignKey(Chart, on_delete=models.CASCADE)
+    x = models.FloatField(default=0.0)
+    y = models.FloatField(default=0.0)
