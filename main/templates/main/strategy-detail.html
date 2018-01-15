@@ -2,20 +2,22 @@
 {% block strategy_active %}active{% endblock %}
 {% block body %}
 
-<link rel="stylesheet"
-      href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css">
-<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-<script>hljs.initHighlightingOnLoad();</script>
-
+{% load static %}
+<script src="{% static 'main/ace-builds/src-noconflict/ace.js' %}" type="text/javascript" charset="utf-8"></script>
+<style type="text/css" media="screen">
+    #editor { 
+        position: relative;
+	height: 600px;
+    }
+</style>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script>
 <h3>{{sim.name}}</h3>
 <h4>{{sim.progress}}%</h4>
 <p>{{sim.detail}}</p>
 
-{% if code %}
-<pre><code>{{ code }}</code></pre>
-{% endif %}
+<div id="editor"></div>
+
 
 {% if error %}<p>error {{error}}</p>{% endif %}
 
@@ -23,6 +25,13 @@
 
 
 <script>
+
+var editor = ace.edit("editor");
+editor.setTheme("ace/theme/monokai");
+editor.getSession().setMode("ace/mode/python");
+var code = String.raw`{{ code }}`;
+var scode = $.parseHTML(code)[0].wholeText
+editor.setValue(scode);
 
 function dtos(d) {
 	return d.toJSON().split('T')[0]
