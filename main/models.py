@@ -63,7 +63,14 @@ class SfData(models.Model): # String-Float data
     x = models.CharField(max_length=20)
     y = models.FloatField(default=0.0)
 
+class SffData(models.Model): # String-Float-Float data
+    chart = models.ForeignKey(Chart, on_delete=models.CASCADE)
+    x = models.CharField(max_length=20)
+    y = models.FloatField(default=0.0)
+    y2 = models.FloatField(default=0.0)
+
 class FfData(models.Model): # Float-FLoat data
     chart = models.ForeignKey(Chart, on_delete=models.CASCADE)
     x = models.FloatField(default=0.0)
     y = models.FloatField(default=0.0)
+

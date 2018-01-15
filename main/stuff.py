@@ -54,6 +54,9 @@ class MyDate:
     def __hash__(self):
         return hash(self.s)
 
+    def gap(self, other):
+        return other.date.toordinal() - self.date.toordinal()
+
     def today():
         return MyDate(datetime.today().__str__().split(' ')[0])
     def fromfile(f='/var/www/stockAnalyzeWeb/main/data/today.txt'):
@@ -65,6 +68,11 @@ class MyDate:
         f = open(f, 'w')
         f.write(self.__str__())
         f.close()
+
+def mdrange(dfrom,dto):
+    while dfrom < dto:
+        yield dfrom
+        dfrom += 1
 
 def price_change(code, date):
     c = Company.objects.get(code=code)

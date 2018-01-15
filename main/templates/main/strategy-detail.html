@@ -7,10 +7,17 @@
 <h4>{{sim.progress}}%</h4>
 <p>{{sim.detail}}</p>
 
+{% if error %}<p>error {{error}}</p>{% endif %}
+
 <div id="canvasGroup"></div>
 
 
 <script>
+
+function dtos(d) {
+	return d.toJSON().split('T')[0]
+}
+
 $.ajax({ url:"{% url 'main:get_charts' sim.num %}",
        dataType:'json',
        success:function(data){
@@ -22,39 +29,100 @@ $.ajax({ url:"{% url 'main:get_charts' sim.num %}",
 		var canvas = document.createElement('canvas');
 	        div = document.getElementById('canvasGroup'); 
 	        canvas.id     = "chart"+key;
-	        canvas.width  = 1224;
-	        canvas.height = 768;
-	        canvas.style.zIndex   = 8;
-	        canvas.style.position = "absolute";
-		canvas.style.border   = "1px solid";
-		div.appendChild(canvas)
+		div.appendChild(canvas);
 
-		var xs = dict['xs']
-		var ys = dict['ys']
+		if(name == "simulation") {
+			$.ajax({ url:"{% url 'main:get_prices' '^KS11' 'somedatedoesntmatternow' %}",
+				dataType:'json',
+				success:function(data){
+					var xs = dict['xs'];
+					var ys = dict['ys'];
+					var market = [];
+					for(var i = 0; i<xs.length; i++) {
+						if(xs[i] in data) {
+							market.push(data[xs[i]]);
+						} else {
+							var d = new Date(xs[i]);
+							var cnt = 0;
+							while(!(dtos(d) in data) && cnt < 20) {
+								d.setDate(d.getDate() - 1);
+								cnt++;
+							}
+							market.push(data[dtos(d)])
+						}
+					}
+					var factor = ys[0] / market[0];
+					for(var i = 0; i<market.length; i++) {
+						market[i] = market[i] * factor;
+					}
+					// to percent
+					var ysp = [];
+					for(var i = 0; i<ys.length; i++) {
+						ysp.push( (ys[i]-ys[0]) / ys[0] * 100 );
+					}
+					var marketp = [];
+					for(var i = 0; i<market.length; i++) {
+						marketp.push( (market[i]-market[0]) / market[0] * 100 );
+					}
+					datasets = [];
+					datasets.push({label: 'simulation',
+						backgroudnColor: 'rgba(50,50,50,0.5)',
+						borderColor: 'rgb(50,50,50)',
+						pointRadius: 0,
+						borderWidth: 1.5,
+						data: ysp,});
+					datasets.push({label: 'benchmark',
+						backgroundColor: 'rgba(100,0,0,0.5)',
+						borderColor: 'rgb(100,0,0)',
+						pointRadius: 0,
+						borderWidth: 1.5,
+						data: marketp,});
+					var ctx = canvas.getContext('2d');
+					var chart = new Chart(ctx, {
+						type: 'line',
+						data:{
+							labels: xs,
+							datasets: datasets,
+						},
+						options: {},
+					});
 
-		var ctx = canvas.getContext('2d');
 
-		var chart = new Chart(ctx, {
-			    // The type of chart we want to create
-			    type: 'line',
+				}
+			});
+		} else {
 
-			    // The data for our dataset
-			    data: {
-					labels: xs,
-					datasets: [{
-						    label: name,
-						    backgroundColor: 'rgba(50,50,50,0)',
-						    borderColor: 'rgb(70,70,70)',
-						    pointRadius: 0,
-						    borderWidth: 1.5,
-						    data: ys,
-					},
-					],
-			    },
 
-			     // Configuration options go here
-			    options: {},
-		});
+			var xs = dict['xs'];
+			var ys = dict['ys'];
+			datasets = [];
+			datasets.push({label: 'ys', 
+				backgroundColor: 'rgba(50,50,50,0.5)',
+				borderColor: 'rgb(50,50,50)',
+				pointRadius: 0,
+				borderWidth: 1.5,
+				data: ys,});
+
+			if('y2s' in dict) {
+				var y2s = dict['y2s'];
+				datasets.push({label: 'y2s',
+					backgroundColor: 'rgba(0,0,100,0.5)',
+					borderColor: 'rgb(0,0,100)',
+					pointRadius: 0,
+					borderWidth: 1.5,
+					data: y2s,});
+			}
+			var ctx = canvas.getContext('2d');
+
+			var chart = new Chart(ctx, {
+				    type: 'line',
+				    data: {
+						labels: xs,
+						datasets: datasets,
+				    },
+				    options: {},
+			});
+		}
 	}
        }
 });

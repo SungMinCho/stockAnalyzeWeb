@@ -5,6 +5,8 @@ import pandas as pd
 import math
 from datetime import *
 from . import stuff
+import json
+import os
 
 # Create your views here.
 
@@ -26,6 +28,7 @@ def strategy(request):
 def strategy_detail(request, num):
     ctx = {}
     ctx['sim'] = Simulation.objects.get(num=num)
+
     return render(request, 'main/strategy-detail.html', ctx)
 
 def get_charts(request, num):
@@ -35,16 +38,32 @@ def get_charts(request, num):
     i = -1
     for c in charts:
         i += 1
-        if c.sfdata_set.all().count() == 0:
-            data = c.ffdata_set.all()
-        else:
-            data = c.sfdata_set.all()
         ret[i] = {}
-        ret[i]['xs'] = []
-        ret[i]['ys'] = []
-        for d in data:
-            ret[i]['xs'].append(d.x)
-            ret[i]['ys'].append(d.y)
+        if c.ffdata_set.all().count() > 0:
+            data = c.ffdata_set.all().order_by('x')
+            ret[i]['xs'] = []
+            ret[i]['ys'] = []
+            for d in data:
+                ret[i]['xs'].append(d.x)
+                ret[i]['ys'].append(d.y)
+        elif c.sfdata_set.all().count() > 0:
+            data = c.sfdata_set.all().order_by('x')
+            ret[i]['xs'] = []
+            ret[i]['ys'] = []
+            for d in data:
+                ret[i]['xs'].append(d.x)
+                ret[i]['ys'].append(d.y)
+
+        elif c.sffdata_set.all().count() > 0:
+            data = c.sffdata_set.all().order_by('x')
+            ret[i]['xs'] = []
+            ret[i]['ys'] = []
+            ret[i]['y2s'] = []
+            for d in data:
+                ret[i]['xs'].append(d.x)
+                ret[i]['ys'].append(d.y)
+                ret[i]['y2s'].append(d.y2)
+
         ret[i]['name'] = c.name
     return JsonResponse(ret)
 
