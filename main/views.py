@@ -28,6 +28,11 @@ def strategy(request):
 def strategy_detail(request, num):
     ctx = {}
     ctx['sim'] = Simulation.objects.get(num=num)
+    try:
+        with open('/var/www/stockAnalyzeWeb/main/sim_data/f' + str(num) + '/code.py', 'r') as f:
+            ctx['code'] = f.read()
+    except Exception as e:
+        ctx['error'] = str(e)
 
     return render(request, 'main/strategy-detail.html', ctx)
 
