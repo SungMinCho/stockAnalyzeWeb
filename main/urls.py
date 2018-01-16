@@ -9,6 +9,7 @@ urlpatterns = [
         path('strategy', views.strategy, name='strategy'),
         path('strategy-detail/<num>', views.strategy_detail, name='strategy_detail'),
         path('data/get-charts/<num>', views.get_charts, name='get_charts'),
+        path('data/get-log/<num>', views.get_log, name='get_log'),
         path('logout-user', views.logout_user, name='logout_user'),
         path('data/prices/<code>/<date>', views.get_prices, name='get_prices'),
         path('detail/<code>', views.detail, name='detail'),

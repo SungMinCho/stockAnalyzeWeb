@@ -11,18 +11,23 @@
     }
 </style>
 
+<link rel="stylesheet"
+      href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css">
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script>
 <h3>{{sim.name}}</h3>
 <h4>{{sim.progress}}%</h4>
 <p>{{sim.detail}}</p>
+{% if error %}<p>error {{error}}</p>{% endif %}
+
 
 <div id="editor"></div>
 
 
-{% if error %}<p>error {{error}}</p>{% endif %}
-
 <div id="canvasGroup"></div>
 
+<div> <pre><code id="log"></code></pre> </div>
 
 <script>
 
@@ -33,10 +38,13 @@ var code = String.raw`{{ code }}`;
 var scode = $.parseHTML(code)[0].wholeText
 editor.setValue(scode);
 
+
+
 function dtos(d) {
 	return d.toJSON().split('T')[0]
 }
 
+(function chartUpdate(){
 $.ajax({ url:"{% url 'main:get_charts' sim.num %}",
        dataType:'json',
        success:function(data){
@@ -45,10 +53,14 @@ $.ajax({ url:"{% url 'main:get_charts' sim.num %}",
 	for(var key in data) {
 		var dict = data[key]
 		var name = dict['name'];
-		var canvas = document.createElement('canvas');
-	        div = document.getElementById('canvasGroup'); 
-	        canvas.id     = "chart"+key;
-		div.appendChild(canvas);
+		if($("#chart"+key).length == 0) {
+			var canvas = document.createElement('canvas');
+			div = document.getElementById('canvasGroup'); 
+			canvas.id     = "chart"+key;
+			div.appendChild(canvas);
+		} else {
+			var canvas = $("#chart"+key)[0];
+		}
 
 		if(name == "simulation") {
 			$.ajax({ url:"{% url 'main:get_prices' '^KS11' 'somedatedoesntmatternow' %}",
@@ -143,8 +155,25 @@ $.ajax({ url:"{% url 'main:get_charts' sim.num %}",
 			});
 		}
 	}
-       }
+       },
+       complete: function() {
+	       setTimeout(chartUpdate, 1000);
+       },
 });
+})();
+
+(function logUpdate() {
+  $.ajax({
+    url:"{% url 'main:get_log' sim.num %}",
+    success: function(data) {
+      $('#log').text(data['log']);
+    },
+    complete: function() {
+      // Schedule the next request when the current one's complete
+      setTimeout(logUpdate, 1000);
+    }
+  });
+})();
 				
 </script>
 

@@ -38,7 +38,18 @@ def strategy_detail(request, num):
     except Exception as e:
         ctx['error'] = str(e)
 
+
     return render(request, 'main/strategy-detail.html', ctx)
+
+@login_required
+def get_log(request, num):
+    s = ""
+    try:
+        with open('/var/www/stockAnalyzeWeb/main/sim_data/f' + str(num) + '/log.txt', 'r') as f:
+            s = f.read()
+    except Exception as e:
+        pass
+    return JsonResponse({'log':s})
 
 @login_required
 def get_charts(request, num):
