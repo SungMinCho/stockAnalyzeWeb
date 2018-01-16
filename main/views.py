@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
 from .models import * 
 import pandas as pd
 import math
@@ -10,6 +11,7 @@ import os
 
 # Create your views here.
 
+@login_required
 def index(request):
     ctx = {}
     ctx['Companies'] = Company.objects.all()
@@ -20,11 +22,13 @@ def index(request):
 
     return render(request, 'main/index.html', ctx)
 
+@login_required
 def strategy(request):
     ctx = {}
     ctx['sims'] = Simulation.objects.all().order_by('-num')
     return render(request, 'main/strategy.html', ctx)
 
+@login_required
 def strategy_detail(request, num):
     ctx = {}
     ctx['sim'] = Simulation.objects.get(num=num)
@@ -36,6 +40,7 @@ def strategy_detail(request, num):
 
     return render(request, 'main/strategy-detail.html', ctx)
 
+@login_required
 def get_charts(request, num):
     ret = {}
     sim = Simulation.objects.get(num=num)
@@ -72,10 +77,11 @@ def get_charts(request, num):
         ret[i]['name'] = c.name
     return JsonResponse(ret)
 
-
+@login_required
 def logout_user(request):
     return render(request, 'main/index.html', {}) # temp
 
+@login_required
 def get_prices(request, code, date):
     c = Company.objects.get(code=code)
     #prices = pd.read_pickle(c.prices)
@@ -88,10 +94,12 @@ def get_prices(request, code, date):
 
     return JsonResponse(ret)
 
+@login_required
 def detail(request, code):
     return render(request, 'main/detail.html', {'code':code})
 
 
+@login_required
 def price_change(request, code, date):
     if code == 'all':
         codes = [c.code for c in Company.objects.all()]
@@ -103,7 +111,7 @@ def price_change(request, code, date):
         ret[c] = stuff.price_change(c, d)
     return JsonResponse(ret)
 
-
+@login_required
 def fund_info(request, code, date, freq, item):
     if code == 'all':
         codes = [c.code for c in Company.objects.all()]
