@@ -44,7 +44,9 @@ function dtos(d) {
 	return d.toJSON().split('T')[0]
 }
 
-(function chartUpdate(){
+var charts = {};
+
+(function chartMake(){
 $.ajax({ url:"{% url 'main:get_charts' sim.num %}",
        dataType:'json',
        success:function(data){
@@ -53,14 +55,10 @@ $.ajax({ url:"{% url 'main:get_charts' sim.num %}",
 	for(var key in data) {
 		var dict = data[key]
 		var name = dict['name'];
-		if($("#chart"+key).length == 0) {
-			var canvas = document.createElement('canvas');
-			div = document.getElementById('canvasGroup'); 
-			canvas.id     = "chart"+key;
-			div.appendChild(canvas);
-		} else {
-			var canvas = $("#chart"+key)[0];
-		}
+		var canvas = document.createElement('canvas');
+		div = document.getElementById('canvasGroup'); 
+		canvas.id     = "chart"+key;
+		div.appendChild(canvas);
 
 		if(name == "simulation") {
 			$.ajax({ url:"{% url 'main:get_prices' '^KS11' 'somedatedoesntmatternow' %}",
@@ -117,8 +115,7 @@ $.ajax({ url:"{% url 'main:get_charts' sim.num %}",
 						},
 						options: {},
 					});
-
-
+					charts[key] = chart;
 				}
 			});
 		} else {
@@ -153,13 +150,85 @@ $.ajax({ url:"{% url 'main:get_charts' sim.num %}",
 				    },
 				    options: {},
 			});
+			charts[key] = chart;
 		}
 	}
        },
-       complete: function() {
-	       setTimeout(chartUpdate, 1000);
-       },
 });
+})();
+
+(function chartUpdate() {
+	$.ajax({
+		url: "{% url 'main:get_charts' sim.num %}",
+		dataType: 'json',
+		success: function(data) {
+			for(var key in data) {
+				var chart = charts[key];
+				var dict = data[key];
+				var name = dict['name'];
+
+				if(name == "simulation") {
+					$.ajax({ url:"{% url 'main:get_prices' '^KS11' 'somedatedoesntmatternow' %}",
+						dataType:'json',
+						success:function(data){
+							var xs = dict['xs'];
+							var ys = dict['ys'];
+							var getMarket = function(theD) {
+								if(theD in data) {
+									return data[theD];
+								} else {
+									var d = new Date(theD);
+									var cnt = 0;
+									while(!(dtos(d) in data) && cnt < 20) {
+										d.setDate(d.getDate() - 1);
+										cnt++;
+									}
+									return data[dtos(d)]; // assumes while succeeded
+								}
+							}
+							var market0 = getMarket(xs[0]);
+							var factor = ys[0] / market0;
+							market0 = market0 * factor
+
+							for(var i = 0; i<xs.length; i++) {
+								if(chart.data.labels.indexOf(xs[i]) == -1) {
+									chart.data.labels.push(xs[i]);
+									var ysp = ( (ys[i] - ys[0]) / ys[0] * 100 );
+									chart.data.datasets[0].data.push(ysp);
+									var market = getMarket(xs[i]) * factor;
+									var marketp =  ( (market - market0) / market0 * 100 );
+									chart.data.datasets[1].data.push(marketp);
+									changed = true;
+								}
+							}
+							if(changed) chart.update();
+						},
+					});
+				} else {
+					var xs = dict['xs'];
+					var ys = dict['ys'];
+					var y2s = undefined;
+					if('y2s' in dict) {
+						var y2s = dict['y2s'];
+					}
+					var changed = false;
+					for(var i=0; i<xs.length; i++) {
+						if(chart.data.labels.indexOf(xs[i]) == -1) {
+							chart.data.labels.push(xs[i]);
+							chart.data.datasets[0].data.push(ys[i]);
+							if(y2s) chart.data.datasets[1].data.push(y2s[i]);
+							changed = true;
+						}
+					}
+					if(changed) chart.update();
+				}
+
+			}
+		},
+		complete: function() {
+			setTimeout(chartUpdate, 100);
+		},
+	});
 })();
 
 (function logUpdate() {
@@ -170,7 +239,7 @@ $.ajax({ url:"{% url 'main:get_charts' sim.num %}",
     },
     complete: function() {
       // Schedule the next request when the current one's complete
-      setTimeout(logUpdate, 1000);
+      setTimeout(logUpdate, 100);
     }
   });
 })();
