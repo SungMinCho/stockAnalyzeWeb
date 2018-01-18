@@ -1,3 +1,4 @@
+from django.http import HttpResponse
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
@@ -40,6 +41,16 @@ def strategy_detail(request, num):
 
 
     return render(request, 'main/strategy-detail.html', ctx)
+
+@login_required
+def save_code(request, num):
+    if request.method == "POST" and request.is_ajax():
+        txt = request.POST['txt']
+        with open('/var/www/stockAnalyzeWeb/main/sim_data/f' + str(num) + '/code.py', 'w') as f:
+            f.write(txt)
+        return HttpResponse("Success")
+    else:
+        return HttpResponse("Bad")
 
 @login_required
 def get_log(request, num):

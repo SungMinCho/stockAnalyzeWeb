@@ -34,6 +34,8 @@
 <p>{{sim.detail}}</p>
 {% if error %}<p>error {{error}}</p>{% endif %}
 
+<button class="btn btn-primary" id="saveButton" style="margin:5px">Save</button>
+<button class="btn btn-success" id="runButton" style="margin:5px">Run</button>
 
 <div id="editor"></div>
 
@@ -51,7 +53,29 @@ var code = String.raw`{{ code }}`;
 var scode = $.parseHTML(code)[0].wholeText
 editor.setValue(scode);
 
+$(document).ready(function() {
+	$("#saveButton").on("click", function(e) {
+		var txt = editor.getValue();
+		datas = {};
+		datas['txt'] = txt;
+		datas['csrfmiddlewaretoken'] = '{{ csrf_token }}';
+		$.ajax({
+			type: "POST",
+			url: "{% url 'main:save_code' sim.num %}",
+			data: datas,
+			success: function(result) {
+				alert(result);
+			},
+			error : function(request, status, error ) {
+				console.log("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+error);
+			},
+		});
+	});
 
+	$("#runButton").on("click", function(e) {
+		alert('run');
+	});
+});
 
 
 function dtos(d) {
