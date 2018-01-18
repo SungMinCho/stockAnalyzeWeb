@@ -9,6 +9,19 @@
         position: relative;
 	height: 600px;
     }
+    #log {
+    padding: 10px;
+    font-size: 12px;
+    font-family: consolas;
+    }
+  
+    .buyLine {
+        color: red;
+    }
+
+    .sellLine {
+	color: blue;
+    }
 </style>
 
 <link rel="stylesheet"
@@ -24,10 +37,10 @@
 
 <div id="editor"></div>
 
-
 <div id="canvasGroup"></div>
 
-<div> <pre><code id="log"></code></pre> </div>
+<!-- <div> <pre><code id="log"></code></pre> </div>  -->
+<div id="log" contenteditable="true"></div>
 
 <script>
 
@@ -37,6 +50,7 @@ editor.getSession().setMode("ace/mode/python");
 var code = String.raw`{{ code }}`;
 var scode = $.parseHTML(code)[0].wholeText
 editor.setValue(scode);
+
 
 
 
@@ -231,11 +245,25 @@ $.ajax({ url:"{% url 'main:get_charts' sim.num %}",
 	});
 })();
 
+var s, ss;
+
 (function logUpdate() {
   $.ajax({
     url:"{% url 'main:get_log' sim.num %}",
     success: function(data) {
-      $('#log').text(data['log']);
+	    txt = data['log'];
+	    lines = txt.split('\n');
+	    newtxt = "";
+	    lines.forEach(function(line) {
+		    if(line.includes("buy")) {
+			    newtxt += "<span class=\"buyLine\">" + line + "&nbsp;</span><br>";
+		    }else if(line.includes("sell")) {
+			    newtxt += "<span class=\"sellLine\">" + line + "&nbsp;</span><br>";
+		    }else {
+			    newtxt += line + "<br>";
+		    }
+	    });
+	    if($("#log").html() != newtxt) { $("#log").html(newtxt); s = $("#log").html(); ss = newtxt; }
     },
     complete: function() {
       // Schedule the next request when the current one's complete

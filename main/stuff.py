@@ -156,3 +156,5 @@ def fund_info(code, date_, freq, item):
         return ret
     except Exception as e:
         return 'X'
+
+

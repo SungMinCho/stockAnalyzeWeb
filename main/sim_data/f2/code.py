@@ -3,22 +3,15 @@ import main.Simulation as sm
 from main.stuff import *
 from random import shuffle
 
-try:
-    sim = Simulation.objects.get(num=2)
-    sim.delete()
-except Exception as e:
-    pass
-
-sim = Simulation()
-sim.num = 2
-sim.name = 'Naive strategy for testing'
-sim.detail = 'Buy 5 random companies at each rebalancing period=365'
-sim.progress = 0.0
-sim.save()
-
-
 dfrom = MyDate('2012-12-03')
 dto = MyDate('2017-12-03')
+
+(sim,Sim) = sm.simInit(num=2,
+        name='Naive strategy for testing',
+        detail = 'Buy 5 random companies at each rebalancing period=365',
+        dfrom = dfrom,
+        dto = dto)
+
 
 def strategy(t, comps, wallet, context):
     sim.progress = (dfrom.gap(t) / dfrom.gap(dto)) * 100
@@ -42,7 +35,4 @@ def strategy(t, comps, wallet, context):
     context['lastTrade'] = t
 
 
-Sim = sm.Sim(dfrom, dto, 'main/sim_data/f2', 2)
-Sim.run(strategy, 1000000)
-sim.progress = 100.0
-sim.save()
+Sim.run(strategy, startcash=1000000, modelSim=sim)

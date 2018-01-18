@@ -8,18 +8,17 @@ import os
 class Logger:
     def __init__(self, path):
         self.path = path
-        self.f = open(path, 'a')
+        f = open(path, 'w')
+        f.close() # erase file initially
         self.open = True
     def close(self):
-        if self.open:
-            self.f.close()
-            self.open = False
+        self.open = False
     def write(self,s):
         if self.open:
-            self.f.write(s)
+            with open(self.path, 'a') as f: 
+                f.write(s)
     def writeline(self,s):
-        if self.open:
-            self.f.write(s+'\n')
+        self.write(s+'\n')
 
 class Comp:
     slippage = 0.005
@@ -131,6 +130,10 @@ class Wallet:
         p = corp.get_buy_price(t)
         self.cash -= p*amount
         self.stocks[corp] += amount
+        if p*amount > 0:
+            self.log.writeline(str(t) + ":buy " + str(amount) + " " + corp.comp.name + corp.comp.code + " at " + human_readable_float(p*amount))
+        return # don't need to record history
+
         t = str(t)
         if t not in list(self.history.columns):
             self.history[t] = ""
@@ -150,6 +153,10 @@ class Wallet:
         p = corp.get_sell_price(t)
         self.cash += p*amount
         self.stocks[corp] -= amount
+        if p*amount > 0:
+            self.log.writeline(str(t) + ":sell " + str(amount) + " " + corp.comp.name + corp.comp.code + " at " + human_readable_float(p*amount))
+        return # don't need to record history
+
         t = str(t)
         if t not in list(self.history.columns):
             self.history[t] = ""
@@ -199,8 +206,7 @@ class Wallet:
         tot = self.get_total(t)
         return round( (tot - self.original_cash) / self.original_cash * 100, 2 )
     def conclude(self):
-        if self.log.open:
-            self.history.to_pickle(self.log.path)
+        pass
     def record(self, t, chart):
         d = SfData()
         d.chart = chart
@@ -213,17 +219,18 @@ class Wallet:
 
 class Sim:
     def __init__(self, dfrom, dto, simfolder, simnum):
+        self.log = Logger(os.path.join(simfolder, 'log.txt'))
         self.dfrom = dfrom
         self.dto = dto
         self.comps = [Comp(c.code) for c in Company.objects.all()]
-        print('Load ' + str(len(self.comps)))
+        self.log.writeline('Load ' + str(len(self.comps)))
         market = Comp('^KS11')
         self.comps = [c for c in self.comps if c.validate(dfrom, dto, market)]
-        print('Valid ' + str(len(self.comps)))
+        self.log.writeline('Valid ' + str(len(self.comps)))
         self.simfolder = simfolder
         self.simnum = simnum
 
-    def run(self, strategy, startcash, justResult=False):
+    def run(self, strategy, startcash, modelSim, justResult=False):
         if not justResult:
             # write metadata
             metadata = {}
@@ -233,18 +240,16 @@ class Sim:
             metadata['companyCodes'] = [c.code for c in self.comps]
             json.dump(metadata, open(os.path.join(self.simfolder, 'metadata.txt'), 'w'))
 
-        result = Logger(os.path.join(self.simfolder, 'result.txt'))
-        wallet = Wallet(startcash, result)
+        wallet = Wallet(startcash, self.log)
 
         if justResult:
-            result.close()
+            log.close()
 
         context = {}
-        sim = Simulation.objects.get(num=self.simnum)
         if not justResult:
             chart = Chart()
-            chart.sim = sim
-            chart.name = 'simulation'
+            chart.sim = modelSim
+            chart.name = 'simulation' # required
             chart.save()
         for d in mdrange(self.dfrom, self.dto+1):
             strategy(d, self.comps, wallet, context)
@@ -253,4 +258,22 @@ class Sim:
 
         wallet.conclude()
 
+        modelSim.progress = 100.0
+        modelSim.save()
+
         return wallet.earned(self.dto)
+
+def simInit(num, name, detail, dfrom, dto, progress=0.0):
+    try:
+        sim = Simulation.objects.get(num=num)
+        sim.delete()
+    except Exception as e:
+        pass
+    sim = Simulation()
+    sim.num = num
+    sim.name = name
+    sim.detail = detail
+    sim.progress = progress
+    sim.save()
+    SimInstance = Sim(dfrom, dto, '/var/www/stockAnalyzeWeb/main/sim_data/f'+str(num), num)
+    return (sim, SimInstance)

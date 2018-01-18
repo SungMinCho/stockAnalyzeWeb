@@ -45,10 +45,10 @@ def strategy_detail(request, num):
 def get_log(request, num):
     s = ""
     try:
-        with open('/var/www/stockAnalyzeWeb/main/sim_data/f' + str(num) + '/log.txt', 'r') as f:
+        with open('/var/www/stockAnalyzeWeb/main/sim_data/f' + str(num) + '/log.txt', 'r', encoding='utf-8') as f:
             s = f.read()
     except Exception as e:
-        pass
+        s = 'get_log_error : ' + str(e)
     return JsonResponse({'log':s})
 
 @login_required
