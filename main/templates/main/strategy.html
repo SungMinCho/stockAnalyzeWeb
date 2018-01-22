@@ -7,9 +7,26 @@
 	{% for s in sims %}
 	<a href="{% url 'main:strategy_detail' s.num %}" class="list-group-item">
 		<h5>{{s.name}}</h5>
-		<small>{{s.progress}}%</small>
+		<small id="{{ s.num }}">{{s.progress}}%</small>
 		<p>{{s.detail}}</p>
 	</a>
+
+	<script>
+	(function progressUpdate{{ s.num }}() {
+		var isHundred = false;
+		$.ajax({
+			url: "{% url 'main:get_progress' s.num %}",
+			dataType: 'json',
+			success: function(data){
+				$("#{{ s.num }}").html(data['value'] + "%");
+				if(data['value'] + "%" == "100%") isHundred = true;
+			},
+			complete: function(){
+				if(!isHundred) setTimeout(progressUpdate{{ s.num }}, 100);
+			},
+		});
+	})();
+	</script>
 	{% endfor %}
 </div>
 

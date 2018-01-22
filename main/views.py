@@ -9,6 +9,8 @@ from datetime import *
 from . import stuff
 import json
 import os
+import subprocess
+import sys
 
 # Create your views here.
 
@@ -53,6 +55,21 @@ def save_code(request, num):
         return HttpResponse("Bad")
 
 @login_required
+def run_code(request, num):
+    if request.method == "POST" and request.is_ajax():
+        pth = '/var/www/stockAnalyzeWeb/main/sim_data/f' + str(num) + '/code.py'
+        errpth = '/var/www/stockAnalyzeWeb/main/sim_data/f' + str(num) + '/error.txt'
+        try:
+            #exec(open(pth, encoding='utf-8').read(), globals())
+            with open(errpth, 'w') as err:
+                p = subprocess.Popen([sys.executable, pth], stderr=err)
+            return HttpResponse("Exec started")
+        except Exception as e:
+            return HttpResponse(str(e))
+    else:
+        return HttpResponse("Bad")
+
+@login_required
 def get_log(request, num):
     s = ""
     try:
@@ -61,6 +78,13 @@ def get_log(request, num):
     except Exception as e:
         s = 'get_log_error : ' + str(e)
     return JsonResponse({'log':s})
+
+@login_required
+def get_progress(request, num):
+    sim = Simulation.objects.get(num=num)
+    ret = {}
+    ret['value'] = sim.progress
+    return JsonResponse(ret)
 
 @login_required
 def get_charts(request, num):

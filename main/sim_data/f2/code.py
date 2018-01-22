@@ -1,3 +1,8 @@
+import os, django, sys
+sys.path.append('/var/www/stockAnalyzeWeb')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "stockAnalyzeWeb.settings")
+django.setup()
+
 from main.models import *
 import main.Simulation as sm
 from main.stuff import *

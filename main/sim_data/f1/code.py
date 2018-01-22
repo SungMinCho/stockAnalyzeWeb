@@ -1,3 +1,8 @@
+import os, django, sys
+sys.path.append('/var/www/stockAnalyzeWeb')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "stockAnalyzeWeb.settings")
+django.setup()
+
 from main.models import *
 import random as rand
 import time
@@ -37,4 +42,6 @@ def run(suite=0):
         with open('/var/www/stockAnalyzeWeb/main/sim_data/f1/log.txt', 'a') as f:
             f.write(str(x) + ' : ' + str(y) + str('\n'))
 
-        time.sleep(0.1)
+        time.sleep(0.01)
+
+run()

@@ -15,7 +15,7 @@ class Logger:
         self.open = False
     def write(self,s):
         if self.open:
-            with open(self.path, 'a') as f: 
+            with open(self.path, 'a', encoding='utf8') as f: 
                 f.write(s)
     def writeline(self,s):
         self.write(s+'\n')

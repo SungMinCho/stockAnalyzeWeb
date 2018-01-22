@@ -30,7 +30,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script>
 <h3>{{sim.name}}</h3>
-<h4>{{sim.progress}}%</h4>
+<h4 id="progress">{{sim.progress}}%</h4>
 <p>{{sim.detail}}</p>
 {% if error %}<p>error {{error}}</p>{% endif %}
 
@@ -53,6 +53,21 @@ var code = String.raw`{{ code }}`;
 var scode = $.parseHTML(code)[0].wholeText
 editor.setValue(scode);
 
+var charts = {};
+
+var shouldClearChart = false;
+var clearChart = function() {
+	// chart clear
+	for(var key in charts) {
+		var chart = charts[key];
+		chart.data.labels = [];
+		for(var i = 0; i < chart.data.datasets.length; i++) {
+			chart.data.datasets[i].data = [];
+		}
+		chart.update();
+	}
+}
+
 $(document).ready(function() {
 	$("#saveButton").on("click", function(e) {
 		var txt = editor.getValue();
@@ -73,7 +88,22 @@ $(document).ready(function() {
 	});
 
 	$("#runButton").on("click", function(e) {
-		alert('run');
+		datas = {};
+		datas['txt'] = txt;
+		datas['csrfmiddlewaretoken'] = '{{ csrf_token }}';
+
+		$.ajax({
+			type: "POST",
+			url: "{% url 'main:run_code' sim.num %}",
+			data: datas,
+			success: function(result) {
+				shouldClearChart = true;
+				alert(result);
+			},
+			error: function(request, status, error) {
+				console.log("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+error);
+			},
+		});
 	});
 });
 
@@ -82,7 +112,6 @@ function dtos(d) {
 	return d.toJSON().split('T')[0]
 }
 
-var charts = {};
 
 (function chartMake(){
 $.ajax({ url:"{% url 'main:get_charts' sim.num %}",
@@ -264,6 +293,10 @@ $.ajax({ url:"{% url 'main:get_charts' sim.num %}",
 			}
 		},
 		complete: function() {
+			if(shouldClearChart) {
+				clearChart();
+				shouldClearChart = false;
+			}
 			setTimeout(chartUpdate, 100);
 		},
 	});
@@ -295,6 +328,21 @@ var s, ss;
     }
   });
 })();
+
+(function progressUpdate() {
+	$.ajax({
+		url: "{% url 'main:get_progress' sim.num %}",
+		dataType: 'json',
+		success: function(data){
+			$("#progress").html(data['value'] + "%");
+			if(data['value'] + "%" == "100%") isHundred = true;
+		},
+		complete: function(){
+			setTimeout(progressUpdate{{ s.num }}, 100);
+		},
+	});
+})()
+
 				
 </script>
 
