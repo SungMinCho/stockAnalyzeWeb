@@ -2,6 +2,7 @@
 {% block strategy_active %}active{% endblock %}
 {% block body %}
 
+<a href="{% url 'main:add_strategy' %}" class="btn btn-success" style="margin:5px">Add</a>
 
 <div class="list-group">
 	{% for s in sims %}

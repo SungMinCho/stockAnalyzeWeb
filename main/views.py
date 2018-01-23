@@ -1,5 +1,5 @@
 from django.http import HttpResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from .models import * 
@@ -11,6 +11,7 @@ import json
 import os
 import subprocess
 import sys
+import shutil
 
 # Create your views here.
 
@@ -30,6 +31,35 @@ def strategy(request):
     ctx = {}
     ctx['sims'] = Simulation.objects.all().order_by('-num')
     return render(request, 'main/strategy.html', ctx)
+
+@login_required
+def add_strategy(request):
+    num = Simulation.objects.all().latest('num').num
+    num += 1
+    s = Simulation()
+    s.num = num
+    s.name = "New strategy"
+    s.detail = "New strategy created"
+    s.progress = 0.0
+    s.save()
+    pth = '/var/www/stockAnalyzeWeb/main/sim_data/f' + str(num)
+    os.mkdir(pth, 0o777)
+
+    codepth = pth + '/code.py'
+    with open('/var/www/stockAnalyzeWeb/main/sim_data/codeTemplate.py', 'r', encoding='utf-8') as codef:
+        code = codef.read()
+        code = code.replace('NUM', str(num))
+        with open(codepth, 'w') as writecode:
+            writecode.write(code)
+        os.chmod(codepth, 0o777)
+    return redirect('main:strategy')
+
+@login_required
+def delete_strategy(request, num):
+    Simulation.objects.get(num=num).delete()
+    shutil.rmtree('/var/www/stockAnalyzeWeb/main/sim_data/f' + str(num))
+    return redirect('main:strategy')
+
 
 @login_required
 def strategy_detail(request, num):
