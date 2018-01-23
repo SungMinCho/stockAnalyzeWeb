@@ -27,6 +27,11 @@ def index(request):
     return render(request, 'main/index.html', ctx)
 
 @login_required
+def edit(request):
+    ctx = {}
+    return render(request, 'main/edit.html', ctx)
+
+@login_required
 def strategy(request):
     ctx = {}
     ctx['sims'] = Simulation.objects.all().order_by('-num')
@@ -73,6 +78,38 @@ def strategy_detail(request, num):
 
 
     return render(request, 'main/strategy-detail.html', ctx)
+
+@login_required
+def get_file(request):
+    if request.method == "POST" and request.is_ajax():
+        try:
+            path = request.POST['path']
+            with open(os.path.join('/var/www/stockAnalyzeWeb', path), 'r', encoding='utf-8') as f:
+                txt = f.read()
+                ret = {}
+                ret['value'] = txt
+                return JsonResponse(ret)
+        except Exception as e:
+            ret = {}
+            ret['value'] = str(e)
+            return JsonResponse(ret)
+    else:
+        return HttpResponse("Bad")
+
+@login_required
+def set_file(request):
+    if request.method == "POST" and request.is_ajax():
+        try:
+            txt = request.POST['txt']
+            path = request.POST['path']
+            with open(os.path.join('/var/www/stockAnalyzeWeb', path), 'w', encoding='utf-8') as f:
+                f.write(txt)
+            return HttpResponse("Success")
+        except Exception as e:
+            return HttpResponse(str(e))
+    else:
+        return HttpResponse("Bad")
+
 
 @login_required
 def save_code(request, num):

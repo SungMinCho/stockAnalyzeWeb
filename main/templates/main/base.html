@@ -34,6 +34,7 @@
             <ul class="nav navbar-nav">
                 <li class="{% block board_active %}{% endblock %}"><a href="{% url 'main:index' %}"><span class="glyphicon glyphicon-dashboard" aria-hidden="true"></span>&nbsp; Board</a></li>
                 <li class="{% block strategy_active %}{% endblock %}"><a href="{% url 'main:strategy' %}"><span class="glyphicon glyphicon-stats" aria-hidden="true"></span>&nbsp; Strategy</a></li>
+                <li class="{% block edit_active %}{% endblock %}"><a href="{% url 'main:edit' %}"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span>&nbsp; Edit</a></li>
             </ul>
             <form class="navbar-form navbar-left" role="search" method="get" action="{% url 'main:index' %}">
                 <div class="form-group">

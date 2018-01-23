@@ -6,6 +6,9 @@ app_name = 'main'
 
 urlpatterns = [
         path('', views.index, name='index'),
+        path('edit', views.edit, name='edit'),
+        path('file/get-file', views.get_file, name='get_file'),
+        path('file/set-file', views.set_file, name='set_file'),
         path('strategy', views.strategy, name='strategy'),
         path('add-strategy', views.add_strategy, name='add_strategy'),
         path('delete-strategy/<num>', views.delete_strategy, name='delete_strategy'),

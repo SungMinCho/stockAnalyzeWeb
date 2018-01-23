@@ -1,0 +1,83 @@
+{% extends 'main/base.html' %}
+{% block edit_active %}active{% endblock %}
+{% block body %}
+
+{% load static %}
+<script src="{% static 'main/ace-builds/src-noconflict/ace.js' %}" type="text/javascript" charset="utf-8"></script>
+<style type="text/css" media="screen">
+    #editor { 
+        position: relative;
+	height: 1000px;
+    }
+</style>
+
+<link rel="stylesheet"
+      href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css">
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script>
+
+<textarea id='path'></textarea>
+
+<button class="btn btn-warning" id="loadButton" style="margin:5px">Load</button>
+<button class="btn btn-primary" id="saveButton" style="margin:5px">Save</button>
+
+<div id="editor"></div>
+
+
+<script>
+
+var editor = ace.edit("editor");
+editor.setTheme("ace/theme/monokai");
+//editor.getSession().setMode("ace/mode/python");
+
+$("#path")[0].style.width = "1000px";
+$("#path")[0].style.height = "30px";
+
+
+$(document).ready(function() {
+	$("#saveButton").on("click", function(e) {
+		var txt = editor.getValue();
+		var path = $("#path")[0].value;
+		datas = {};
+		datas['path'] = path;
+		datas['txt'] = editor.getValue();
+		datas['csrfmiddlewaretoken'] = '{{ csrf_token }}';
+		$.ajax({
+			type: "POST",
+			url: "{% url 'main:set_file' %}",
+			data: datas,
+			success: function(result) {
+				alert(result);
+			},
+			error : function(request, status, error ) {
+				console.log("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+error);
+			},
+		});
+	});
+
+	$("#loadButton").on("click", function(e) {
+		var path = $("#path")[0].value;;
+		datas = {};
+		datas['path'] = path;
+		datas['csrfmiddlewaretoken'] = '{{ csrf_token }}';
+
+		$.ajax({
+			type: "POST",
+			url: "{% url 'main:get_file' %}",
+			data: datas,
+			success: function(result) {
+				if(path.endsWith('.py')) editor.getSession().setMode("ace/mode/python");
+				editor.setValue(result['value']);
+			},
+			error: function(request, status, error) {
+				console.log("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+error);
+			},
+		});
+	});
+});
+
+</script>
+
+
+{% endblock %}
