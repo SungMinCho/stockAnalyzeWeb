@@ -33,7 +33,36 @@ editor.setTheme("ace/theme/monokai");
 
 $("#path")[0].style.width = "1000px";
 $("#path")[0].style.height = "30px";
+$("#path").keydown(function(e) {
+   var code = e.keyCode ? e.keyCode : e.which;
+   if (code == 13) {  // Enter keycode
+     e.preventDefault();
+     load();
+   }
+});
 
+function load() {
+	var path = $("#path")[0].value;;
+	datas = {};
+	datas['path'] = path;
+	datas['csrfmiddlewaretoken'] = '{{ csrf_token }}';
+
+	$.ajax({
+		type: "POST",
+		url: "{% url 'main:get_file' %}",
+		data: datas,
+		success: function(result) {
+		    title = path.split('/').pop();
+		    $(document).prop('title', title);
+			if(path.endsWith('.py')) editor.getSession().setMode("ace/mode/python");
+			else if(path.endsWith('.js') || path.endsWith('.html')) editor.getSession().setMode("ace/mode/javascript");
+			editor.setValue(result['value']);
+		},
+		error: function(request, status, error) {
+			console.log("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+error);
+		},
+	});
+}
 
 $(document).ready(function() {
 	$("#saveButton").on("click", function(e) {
@@ -57,23 +86,7 @@ $(document).ready(function() {
 	});
 
 	$("#loadButton").on("click", function(e) {
-		var path = $("#path")[0].value;;
-		datas = {};
-		datas['path'] = path;
-		datas['csrfmiddlewaretoken'] = '{{ csrf_token }}';
-
-		$.ajax({
-			type: "POST",
-			url: "{% url 'main:get_file' %}",
-			data: datas,
-			success: function(result) {
-				if(path.endsWith('.py')) editor.getSession().setMode("ace/mode/python");
-				editor.setValue(result['value']);
-			},
-			error: function(request, status, error) {
-				console.log("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+error);
-			},
-		});
+		load();
 	});
 });
 
