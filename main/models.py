@@ -15,6 +15,7 @@ class Company(models.Model):
     prices = models.CharField(max_length=30)
     fundY = models.CharField(max_length=30)
     fundQ = models.CharField(max_length=30)
+    shares = models.IntegerField(default=0)
 
     def __str__(self):
         return self.name + self.code
