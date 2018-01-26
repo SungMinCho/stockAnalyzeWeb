@@ -2,6 +2,7 @@
 {% block board_active %}active{% endblock %}
 {% block body %}
 
+<div id="canvasGroup"></div>
 <canvas id="chart"></canvas>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script>
 {% load static %}
@@ -9,132 +10,183 @@
 
 <script>
 
-$.ajax({ url:"{% url 'main:get_prices' code 'all' %}",
+function newCanvas(canvasId) {
+    var canvas = document.createElement('canvas');
+	div = document.getElementById('canvasGroup'); 
+	canvas.id = canvasId;
+	div.appendChild(canvas);
+	return canvas;
+}
+
+function drawChart(chartType, dataname, freq, data, bgcolor, bdcolor) {
+    // assume data has keys : labels, values.
+    var canvas = newCanvas(dataname + ' ' + freq);
+    var ctx = canvas.getContext('2d');
+    var chart = new Chart(ctx, {
+    		    // The type of chart we want to create
+    		    type: chartType,
+    
+    		    // The data for our dataset
+    	  	    data: {
+    				labels: data['labels'],
+    				datasets: [{
+    					    label: dataname + ' ' + freq,
+    					    backgroundColor: bgcolor,
+    					    borderColor: bdcolor,
+    					    borderWidth: 1.5,
+    					    data: data['values'],
+    				}],
+    		    },
+    		     // Configuration options go here
+    		     options: {},
+    });
+}
+
+function drawFundData(dataname, freq) {
+  var url = "{% url 'main:get_fund_data' code 3141592 12345678 %}".replace(/3141592/, dataname).replace(/12345678/, freq);
+  $.ajax({
+      url: url,
+      dataType:'json',
+      success:function(data){
+          if(freq === 'y') {
+              var bgcolor = 'rgba(100, 100, 0, 0.5)'
+              var bdcolor = 'rgb(150,150,0)'
+          } else {
+              var bgcolor = 'rgba(0, 100, 100, 0.5)'
+              var bdcolor = 'rgb(0,150,150)'
+          }
+          drawChart('bar', dataname, freq, data, bgcolor, bdcolor)
+      },
+  })
+}
+
+function drawFundRelatedData(dataname, freq) {
+  var url = "{% url 'main:get_fund_related_data' code 3141592 12345678 %}".replace(/3141592/, dataname).replace(/12345678/, freq);
+  $.ajax({
+      url: url,
+      dataType:'json',
+      success:function(data){
+          if(freq === 'y') {
+              var bgcolor = 'rgba(200, 200, 0, 0.5)'
+              var bdcolor = 'rgb(250,250,0)'
+          } else {
+              var bgcolor = 'rgba(0, 200, 200, 0.5)'
+              var bdcolor = 'rgb(0,250,250)'
+          }
+          drawChart('line', dataname, freq, data, bgcolor, bdcolor)
+      },
+  })
+}
+
+function drawFundRelatedDatas() {
+    drawFundRelatedData('eps', 'y');
+    drawFundRelatedData('bps', 'y');
+    drawFundRelatedData('per', 'y');
+    drawFundRelatedData('pbr', 'y');
+}
+
+function drawFundDatas() {
+    drawFundData('sales', 'y');
+    drawFundData('biz_profit', 'y');
+    drawFundData('net_profit', 'y');
+    drawFundData('consol_net_profit', 'y');
+    drawFundData('tot_asset', 'y');
+    drawFundData('tot_debt', 'y');
+    drawFundData('tot_capital', 'y');
+    
+    drawFundData('sales', 'q');
+    drawFundData('biz_profit', 'q');
+    drawFundData('net_profit', 'q');
+    drawFundData('consol_net_profit', 'q');
+    
+    drawFundRelatedDatas();
+}
+
+function drawPrices() {
+    $.ajax({ url:"{% url 'main:get_prices' code 'all' %}",
        dataType:'json',
        success:function(data){
-	labels = []
-	dataset = []
-	for(var key in data) {
-		if(data.hasOwnProperty(key)) {
-			labels.push(key)
-			//dataset.push(data[key])
-		}
-	}
-	labels.sort();
-	var len = labels.length;
-	var i = 0;
-	for(i=0; i<len; i++) { dataset.push(data[labels[i]]); }
-
-	var ma = function(n) {
-		var ret = [];
-		var i = 0;
-		for(i=0;i<n-1;i++) { ret.push(dataset[i]); }
-		for(i=n-1;i<len;i++) { ret.push(dataset.slice(i-n+1,i+1).reduce((a,b) => a+b, 0) / n); }
-		return ret;
-	}
-
-	var ma20 = ma(20);
-	var ma60 = ma(60);
-	var ma120 = ma(120);
-
-	var options = 
-				{
-					// Container for pan options
-					pan: {
-						// Boolean to enable panning
-						enabled: true,
-
-						// Panning directions. Remove the appropriate direction to disable 
-						// Eg. 'y' would only allow panning in the y direction
-						mode: 'xy',
-						rangeMin: {
-							// Format of min pan range depends on scale type
-							x: null,
-							y: null
-						},
-						rangeMax: {
-							// Format of max pan range depends on scale type
-							x: null,
-							y: null
-						}
-					},
-					
-					// Container for zoom options
-					zoom: {
-						// Boolean to enable zooming
-						enabled: true,
-
-						// Enable drag-to-zoom behavior
-						drag: true,
-
-						// Zooming directions. Remove the appropriate direction to disable 
-						// Eg. 'y' would only allow zooming in the y direction
-						mode: 'xy',
-						rangeMin: {
-							// Format of min zoom range depends on scale type
-							x: null,
-							y: null
-						},
-						rangeMax: {
-							// Format of max zoom range depends on scale type
-							x: null,
-							y: null
-						}
-					}
-				};
-
-
-
-	var ctx = document.getElementById('chart').getContext('2d');
-	var chart = new Chart(ctx, {
-		    // The type of chart we want to create
-		    type: 'line',
-
-		    // The data for our dataset
-	  	    data: {
-				labels: labels,
-				datasets: [{
-					    label: "Adj Close",
-					    backgroundColor: 'rgba(50,50,50,0.5)',
-					    borderColor: 'rgb(70,70,70)',
-					    pointRadius: 0,
-					    borderWidth: 1.5,
-					    data: dataset,
-				},
-				{
-					label: "MA20",
-					backgroundColor: 'rgba(255,0,0,0)',
-					borderColor: 'rgb(255,0,0)',
-					pointRadius: 0,
-					borderWidth: 1.5,
-					data: ma20,
-				},
-				{
-					label: "MA60",
-					backgroundColor: 'rgba(0,255,0,0)',
-					borderColor: 'rgb(0,255,0)',
-					pointRadius: 0,
-					borderWidth: 1.5,
-					data: ma60,
-				},				
-				{
-					label: "MA120",
-					backgroundColor: 'rgba(0,0,255,0)',
-					borderColor: 'rgb(0,0,255)',
-					pointRadius: 0,
-					borderWidth: 1.5,
-					data: ma120,
-				},
-
-
-				],
-		    },
-
-		     // Configuration options go here
-		     options: options,
-	});
+	    labels = []
+	    dataset = []
+	    for(var key in data) {
+    		if(data.hasOwnProperty(key)) {
+			    labels.push(key)
+			    //dataset.push(data[key])
+		    }
+	    }
+    	labels.sort();
+    	var len = labels.length;
+    	var i = 0;
+    	for(i=0; i<len; i++) { dataset.push(data[labels[i]]); }
+    
+    	var ma = function(n) {
+    		var ret = [];
+    		var i = 0;
+    		for(i=0;i<n-1;i++) { ret.push(dataset[i]); }
+    		for(i=n-1;i<len;i++) { ret.push(dataset.slice(i-n+1,i+1).reduce((a,b) => a+b, 0) / n); }
+    		return ret;
+    	}
+    
+    	var ma20 = ma(20);
+    	var ma60 = ma(60);
+    	var ma120 = ma(120);
+    	
+    	var options = {};
+ 
+        var canvas = newCanvas('chart');
+    	var ctx = canvas.getContext('2d');
+    	var chart = new Chart(ctx, {
+    		    // The type of chart we want to create
+    		    type: 'line',
+    
+    		    // The data for our dataset
+    	  	    data: {
+    				labels: labels,
+    				datasets: [{
+    					    label: "Adj Close",
+    					    backgroundColor: 'rgba(50,50,50,0.5)',
+    					    borderColor: 'rgb(70,70,70)',
+    					    pointRadius: 0,
+    					    borderWidth: 1.5,
+    					    data: dataset,
+    				},
+    				{
+    					label: "MA20",
+    					backgroundColor: 'rgba(255,0,0,0)',
+    					borderColor: 'rgb(255,0,0)',
+    					pointRadius: 0,
+    					borderWidth: 1.5,
+    					data: ma20,
+    				},
+    				{
+    					label: "MA60",
+    					backgroundColor: 'rgba(0,255,0,0)',
+    					borderColor: 'rgb(0,255,0)',
+    					pointRadius: 0,
+    					borderWidth: 1.5,
+    					data: ma60,
+    				},				
+    				{
+    					label: "MA120",
+    					backgroundColor: 'rgba(0,0,255,0)',
+    					borderColor: 'rgb(0,0,255)',
+    					pointRadius: 0,
+    					borderWidth: 1.5,
+    					data: ma120,
+    				},
+    				],
+    		    },
+    		     // Configuration options go here
+    		     options: options,
+    	});
+       },
+       complete: function() {
+           drawFundDatas();
        }
-})
+    })
+}
+
+drawPrices();
 
 </script>
 

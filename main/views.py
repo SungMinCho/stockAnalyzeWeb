@@ -12,6 +12,7 @@ import os
 import subprocess
 import sys
 import shutil
+import main.Simulation as sm
 
 # Create your views here.
 
@@ -233,4 +234,40 @@ def fund_info(request, code, date, freq, item):
     ret = {}
     for c in codes:
         ret[c] = stuff.fund_info(c, date, freq, item)
+    return JsonResponse(ret)
+
+@login_required
+def get_fund_data(request, code, dataname, freq):
+    if freq == 'y' or freq == 'a':
+        table = Company.objects.get(code=code).fund_y_set
+    else:
+        table = Company.objects.get(code=code).fund_q_set
+    ret = {}
+    ret['labels'] = []
+    ret['values'] = []
+    table = table.order_by('date')
+    for t in table:
+        ret['labels'].append(t.date)
+        ret['values'].append(getattr(t, dataname))
+    return JsonResponse(ret)
+        
+
+@login_required
+def get_fund_related_data(request, code, dataname, freq):
+    comp = sm.Comp(code)
+    if freq == 'y' or freq == 'a':
+        table = Company.objects.get(code=code).fund_y_set
+    else:
+        table = Company.objects.get(code=code).fund_q_set
+    ret = {}
+    ret['labels'] = []
+    ret['values'] = []
+    
+    table = table.order_by('date')
+    for t in table:
+        date = t.date
+        ret['labels'].append(date)
+        v = comp.get_fund_related_data(stuff.MyDate(date), dataname, freq)
+        ret['values'].append(v)
+    
     return JsonResponse(ret)

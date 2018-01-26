@@ -41,12 +41,50 @@ class Comp:
         if MyDate(self.prices.latest('date').date) < dto:
             return False
         return True
-
-    def get_recent_fund(self, t, index):
-        # using fundy for now
+    
+    def get_fund_related_data(self, t, dataname, freq):
         try:
-            row = self.fundy.filter(date__lte=t).latest('date')
+            if dataname == 'eps':
+                return self.get_eps(t, freq)
+            elif dataname == 'bps':
+                return self.get_bps(t, freq)
+            elif dataname == 'per':
+                return self.get_per(t, freq)
+            elif dataname == 'pbr':
+                return self.get_pbr(t, freq)
+            return None
+        except Exception as e:
+            return -1
+    
+    def get_eps(self, t, freq):
+        net_profit = self.get_recent_fund(t, 'net_profit', freq)
+        shares = self.comp.shares
+        return net_profit / shares
+    
+    def get_bps(self, t, freq):
+        tot_capital = self.get_recent_fund(t, 'tot_capital', freq)
+        shares = self.comp.shares
+        return tot_capital / shares
+    
+    def get_per(self, t, freq):
+        eps = self.get_eps(t, freq)
+        per = self.get_recent_adjc(t) / eps
+        return per
+    
+    def get_pbr(self, t, freq):
+        bps = self.get_bps(t, freq)
+        pbr = self.get_recent_adjc(t) / bps
+        return pbr
+
+    def get_recent_fund(self, t, index, freq):
+        if freq == 'y' or freq == 'a':
+            table = self.fundy
+        else:
+            table = self.fundq
+        try:
+            row = table.filter(date__lte=t).latest('date')
             ret = getattr(row, index)
+            return ret * 100000000 # 단위가 억원
         except Exception as e:
             return None
     

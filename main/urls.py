@@ -23,5 +23,7 @@ urlpatterns = [
         path('detail/<code>', views.detail, name='detail'),
         path('data/price-change/<code>/<date>', views.price_change, name='price_change'),
         path('data/fund-info/<code>/<date>/<freq>/<item>', views.fund_info, name='fund_info'),
+        path('data/get-fund-data/<code>/<dataname>/<freq>', views.get_fund_data, name='get_fund_data'),
+        path('data/get-fund-related-data/<code>/<dataname>/<freq>', views.get_fund_related_data, name='get_fund_related_data'),
         #url(r'^$', views.index, name='index'),
 ]
