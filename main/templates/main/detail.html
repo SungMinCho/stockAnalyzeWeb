@@ -2,6 +2,22 @@
 {% block board_active %}active{% endblock %}
 {% block body %}
 
+<p>
+
+{{ comp.name }} <br>
+{{ comp.code }} <br>
+{{ comp.market }} <br>
+{{ comp.category }} <br>
+{{ comp.products }} <br>
+{{ comp.listedDate }} <br>
+{{ comp.settlementMonth }} <br>
+{{ comp.representative }} <br>
+{{ comp.homepage }} <br>
+{{ comp.area }} <br>
+{{ comp.shares }} <br>
+
+</p>
+
 <div id="canvasGroup"></div>
 <canvas id="chart"></canvas>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script>
@@ -9,6 +25,8 @@
 <script src="{% static 'main/chartjs-plugin-zoom.js' %}"></script>
 
 <script>
+
+$(document).prop('title', '{{ comp.name }}')
 
 function newCanvas(canvasId) {
     var canvas = document.createElement('canvas');

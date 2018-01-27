@@ -39,6 +39,7 @@
   </table>
 
 <script>
+$(document).prop('title', 'Board');
 $(document).ready(function(){
   $.ajax({
 	  url: "{% url 'main:price_change' 'all' Today %}",

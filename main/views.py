@@ -210,7 +210,10 @@ def get_prices(request, code, date):
 
 @login_required
 def detail(request, code):
-    return render(request, 'main/detail.html', {'code':code})
+    ctx = {}
+    ctx['code'] = code
+    ctx['comp'] = Company.objects.get(code=code)
+    return render(request, 'main/detail.html', ctx)
 
 
 @login_required
