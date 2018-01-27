@@ -2,6 +2,9 @@
 {% block board_active %}active{% endblock %}
 {% block body %}
 
+<style type="text/css" media="screen">
+</style>
+
 <p>
 
 {{ comp.name }} <br>
@@ -18,15 +21,86 @@
 
 </p>
 
+<p>From: <input type="text" id="fromDate">  To: <input type="text" id="toDate"></p>
+
 <div id="canvasGroup"></div>
 <canvas id="chart"></canvas>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.0/Chart.min.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 {% load static %}
 <script src="{% static 'main/chartjs-plugin-zoom.js' %}"></script>
 
 <script>
 
 $(document).prop('title', '{{ comp.name }}')
+
+$("#fromDate").datepicker()
+$("#toDate").datepicker()
+
+function resetPriceChartDate() {
+    fs = $("#fromDate")[0].value;
+    ts = $("#toDate")[0].value;
+    
+    if(fs == '') {
+        fd = chartLabels[0];
+    } else {
+        fs = fs.split('/')
+        fd = fs[2] + '-' + fs[0] + '-' + fs[1];
+    }
+    
+    if(ts == '') {
+        td = chartLabels[chartLabels.length - 1];
+    } else {
+        ts = ts.split('/')
+        td = ts[2] + '-' + ts[0] + '-' + ts[1];
+    }
+    
+    drawChartFromTo(fd, td);
+}
+
+$('#fromDate').on('change',function(e){
+    resetPriceChartDate();
+});
+
+$('#toDate').on('change',function(e){
+    resetPriceChartDate();
+});
+
+var zoomOption = {};
+
+/*var zoomOption =
+{
+    scales: {
+        xAxes: [{
+            ticks: {
+                beginAtZero:true
+            }
+        }]
+    },
+    // Container for pan options
+    pan: {
+        // Boolean to enable panning
+        enabled: true,
+ 
+        // Panning directions. Remove the appropriate direction to disable 
+        // Eg. 'y' would only allow panning in the y direction
+        mode: 'x',
+    },
+    
+    // Container for zoom options
+    zoom: {
+        // Boolean to enable zooming
+        enabled: true,
+ 
+        // Enable drag-to-zoom behavior
+        //drag: true,
+ 
+        // Zooming directions. Remove the appropriate direction to disable 
+        // Eg. 'y' would only allow zooming in the y direction
+        mode: 'x',
+    }
+};*/
 
 function newCanvas(canvasId) {
     var canvas = document.createElement('canvas');
@@ -39,7 +113,8 @@ function newCanvas(canvasId) {
 function drawChart(chartType, dataname, freq, data, bgcolor, bdcolor) {
     // assume data has keys : labels, values.
     var canvas = newCanvas(dataname + ' ' + freq);
-    var ctx = canvas.getContext('2d');
+    var ctx = canvas;
+    //var ctx = canvas.getContext('2d');
     var chart = new Chart(ctx, {
     		    // The type of chart we want to create
     		    type: chartType,
@@ -56,7 +131,7 @@ function drawChart(chartType, dataname, freq, data, bgcolor, bdcolor) {
     				}],
     		    },
     		     // Configuration options go here
-    		     options: {},
+    		     options: zoomOption,
     });
 }
 
@@ -120,6 +195,119 @@ function drawFundDatas() {
     drawFundRelatedDatas();
 }
 
+
+// only works for arrays with [true,true, ..., true, false, false, ... ,false] when mapped with searchFunc
+function binaryIndexOf(searchFunc) {
+	'use strict';
+
+    if(!searchFunc(this[0])) return -1;
+    
+	var minIndex = 0;
+	var maxIndex = this.length - 1;
+	var currentIndex;
+	var currentElement;
+	var resultIndex;
+
+	while (minIndex <= maxIndex) {
+		resultIndex = currentIndex = Math.floor((minIndex + maxIndex) / 2);
+		currentElement = this[currentIndex];
+
+		if (searchFunc(currentElement)) {
+			minIndex = currentIndex + 1;
+		}
+		else{
+			maxIndex = currentIndex - 1;
+		}
+	}
+	
+	if(searchFunc(this[maxIndex])) return maxIndex;
+	return maxIndex - 1;
+}
+
+Array.prototype.binaryIndexOf = binaryIndexOf;
+
+var chartLabels = [];
+var chartValues = [];
+var priceChart = undefined;
+
+function drawChartFromTo(startDate, endDate) {
+    var len = chartLabels.length;
+    var labels = [];
+    var values = [];
+    var startIndex = chartLabels.binaryIndexOf(function(x) { return x < startDate; }) + 1;
+    var endIndex = chartLabels.binaryIndexOf(function(x) { return x <= endDate; }) + 1;
+    console.log(startDate, startIndex, chartLabels[startIndex], endDate, endIndex, chartLabels[endIndex], chartLabels.length);
+    labels = chartLabels.slice(startIndex, endIndex);
+    values = chartValues.slice(startIndex, endIndex);
+    len = labels.length;
+    
+    var ma = function(n) {
+    		var ret = [];
+    		var i = 0;
+    		for(i=0;i<n-1;i++) { ret.push(values[i]); }
+    		for(i=n-1;i<len;i++) { ret.push(values.slice(i-n+1,i+1).reduce((a,b) => a+b, 0) / n); }
+    		return ret;
+    };
+	var ma20 = ma(20);
+	var ma60 = ma(60);
+	var ma120 = ma(120);
+	
+	var chartData = {
+	    labels: labels,
+		datasets: [{
+			    label: "Adj Close",
+			    backgroundColor: 'rgba(50,50,50,0.5)',
+			    borderColor: 'rgb(70,70,70)',
+			    pointRadius: 0,
+			    borderWidth: 1.5,
+			    data: values,
+		},
+		{
+			label: "MA20",
+			backgroundColor: 'rgba(255,0,0,0)',
+			borderColor: 'rgb(255,0,0)',
+			pointRadius: 0,
+			borderWidth: 1.5,
+			data: ma20,
+		},
+		{
+			label: "MA60",
+			backgroundColor: 'rgba(0,255,0,0)',
+			borderColor: 'rgb(0,255,0)',
+			pointRadius: 0,
+			borderWidth: 1.5,
+			data: ma60,
+		},				
+		{
+			label: "MA120",
+			backgroundColor: 'rgba(0,0,255,0)',
+			borderColor: 'rgb(0,0,255)',
+			pointRadius: 0,
+			borderWidth: 1.5,
+			data: ma120,
+		},
+		],
+	};
+	
+	if(priceChart == null) {
+        var canvas = newCanvas('chart');
+    	var ctx = canvas.getContext('2d');
+    	priceChart = new Chart(ctx, {
+    	    // The type of chart we want to create
+    	    type: 'line',
+    
+    	    // The data for our dataset
+      	    data: chartData,
+            
+            // Configuration options go here
+	        options: zoomOption,
+        });
+	} else {
+		priceChart.data = chartData;
+		priceChart.update();
+	}
+}
+
 function drawPrices() {
     $.ajax({ url:"{% url 'main:get_prices' code 'all' %}",
        dataType:'json',
@@ -128,75 +316,16 @@ function drawPrices() {
 	    dataset = []
 	    for(var key in data) {
     		if(data.hasOwnProperty(key)) {
-			    labels.push(key)
+			    chartLabels.push(key)
 			    //dataset.push(data[key])
 		    }
 	    }
-    	labels.sort();
-    	var len = labels.length;
+    	chartLabels.sort();
+    	var len = chartLabels.length;
     	var i = 0;
-    	for(i=0; i<len; i++) { dataset.push(data[labels[i]]); }
-    
-    	var ma = function(n) {
-    		var ret = [];
-    		var i = 0;
-    		for(i=0;i<n-1;i++) { ret.push(dataset[i]); }
-    		for(i=n-1;i<len;i++) { ret.push(dataset.slice(i-n+1,i+1).reduce((a,b) => a+b, 0) / n); }
-    		return ret;
-    	}
-    
-    	var ma20 = ma(20);
-    	var ma60 = ma(60);
-    	var ma120 = ma(120);
-    	
-    	var options = {};
- 
-        var canvas = newCanvas('chart');
-    	var ctx = canvas.getContext('2d');
-    	var chart = new Chart(ctx, {
-    		    // The type of chart we want to create
-    		    type: 'line',
-    
-    		    // The data for our dataset
-    	  	    data: {
-    				labels: labels,
-    				datasets: [{
-    					    label: "Adj Close",
-    					    backgroundColor: 'rgba(50,50,50,0.5)',
-    					    borderColor: 'rgb(70,70,70)',
-    					    pointRadius: 0,
-    					    borderWidth: 1.5,
-    					    data: dataset,
-    				},
-    				{
-    					label: "MA20",
-    					backgroundColor: 'rgba(255,0,0,0)',
-    					borderColor: 'rgb(255,0,0)',
-    					pointRadius: 0,
-    					borderWidth: 1.5,
-    					data: ma20,
-    				},
-    				{
-    					label: "MA60",
-    					backgroundColor: 'rgba(0,255,0,0)',
-    					borderColor: 'rgb(0,255,0)',
-    					pointRadius: 0,
-    					borderWidth: 1.5,
-    					data: ma60,
-    				},				
-    				{
-    					label: "MA120",
-    					backgroundColor: 'rgba(0,0,255,0)',
-    					borderColor: 'rgb(0,0,255)',
-    					pointRadius: 0,
-    					borderWidth: 1.5,
-    					data: ma120,
-    				},
-    				],
-    		    },
-    		     // Configuration options go here
-    		     options: options,
-    	});
+    	for(i=0; i<len; i++) { chartValues.push(data[chartLabels[i]]); }
+
+    	drawChartFromTo(chartLabels[0], chartLabels[chartLabels.length - 1]);
        },
        complete: function() {
            drawFundDatas();
