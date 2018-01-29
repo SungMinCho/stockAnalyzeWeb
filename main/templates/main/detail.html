@@ -325,7 +325,14 @@ function drawPrices() {
     	var i = 0;
     	for(i=0; i<len; i++) { chartValues.push(data[chartLabels[i]]); }
 
-    	drawChartFromTo(chartLabels[0], chartLabels[chartLabels.length - 1]);
+    	var fd = chartLabels[0];
+    	var td = chartLabels[chartLabels.length - 1];
+    	drawChartFromTo(fd, td);
+    	fd = fd.split('-');
+    	td = td.split('-');
+    	$("#fromDate").datepicker("setDate", fd[1]+'/'+fd[2]+'/'+fd[0]);
+        $("#toDate").datepicker("setDate", td[1]+'/'+td[2]+'/'+td[0]);
+    	
        },
        complete: function() {
            drawFundDatas();
