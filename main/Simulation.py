@@ -54,7 +54,7 @@ class Comp:
                 return self.get_pbr(t, freq)
             return None
         except Exception as e:
-            return -1
+            return None
     
     def get_eps(self, t, freq):
         net_profit = self.get_recent_fund(t, 'net_profit', freq)

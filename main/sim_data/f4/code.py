@@ -70,8 +70,6 @@ try:
         sim.progress = (i / cnt) * 100
         sim.save()
         code = comp.code
-        if code == "^KS11":
-            continue
         save(comp)
         
         #if i > 1:

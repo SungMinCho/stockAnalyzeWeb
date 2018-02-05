@@ -251,6 +251,9 @@ def get_fund_data(request, code, dataname, freq):
     table = table.order_by('date')
     for t in table:
         ret['labels'].append(t.date)
+        v = getattr(t, dataname)
+        if v is None:
+            v = -1
         ret['values'].append(getattr(t, dataname))
     return JsonResponse(ret)
         
@@ -271,6 +274,8 @@ def get_fund_related_data(request, code, dataname, freq):
         date = t.date
         ret['labels'].append(date)
         v = comp.get_fund_related_data(stuff.MyDate(date), dataname, freq)
+        if v is None:
+            v = -1
         ret['values'].append(v)
     
     return JsonResponse(ret)
